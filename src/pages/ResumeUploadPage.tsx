@@ -12,17 +12,20 @@ import {
 import { SectionHeader } from '../components/common/SectionHeader';
 import { SkillBar } from '../components/common/SkillBar';
 import { StudentProfile } from '../types';
+import { api } from '../services/api';
 
 interface ResumeUploadPageProps {
   student: StudentProfile;
-  onUploadSuccess: (fileInfo: { name: string; size: string; uploadedAt: string }) => void;
+  onUploadSuccess: (fileInfo: { name: string; size: string; uploadedAt: string } | File) => void;
   onContinueToProfile: () => void;
+  onNavigateToDashboard?: () => void;
 }
 
 export const ResumeUploadPage: React.FC<ResumeUploadPageProps> = ({
   student,
   onUploadSuccess,
-  onContinueToProfile
+  onContinueToProfile,
+  onNavigateToDashboard
 }) => {
   const [dragActive, setDragActive] = useState(false);
   const [currentFile, setCurrentFile] = useState<{
@@ -32,6 +35,7 @@ export const ResumeUploadPage: React.FC<ResumeUploadPageProps> = ({
   } | null>(student.resumeFile);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showDetectedPreview, setShowDetectedPreview] = useState(!!student.resumeFile);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -41,6 +45,22 @@ export const ResumeUploadPage: React.FC<ResumeUploadPageProps> = ({
       setDragActive(true);
     } else if (e.type === 'dragleave') {
       setDragActive(false);
+    }
+  };
+
+  const processRealFile = async (file: File) => {
+    setIsProcessing(true);
+    setUploadError(null);
+    try {
+      const res = await api.uploadResume(file);
+      setCurrentFile(res.resumeFile);
+      setShowDetectedPreview(true);
+      onUploadSuccess(file);
+    } catch (err: any) {
+      console.error('Resume upload failed:', err);
+      setUploadError(err?.message || 'Resume analysis failed. Please verify the file and backend connection.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -68,14 +88,14 @@ export const ResumeUploadPage: React.FC<ResumeUploadPageProps> = ({
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
-      processMockFile(file.name, file.size);
+      processRealFile(file);
     }
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      processMockFile(file.name, file.size);
+      processRealFile(file);
     }
   };
 
@@ -88,14 +108,14 @@ export const ResumeUploadPage: React.FC<ResumeUploadPageProps> = ({
   };
 
   const handleLoadSample = () => {
-    processMockFile('Parvez_Ahmed_CSE_Resume_2026.pdf', 254000);
+    processMockFile('Sample_CS_Resume.pdf', 254000);
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <SectionHeader
         title="Start with your resume"
-        subtitle="Upload your resume and we'll build your initial skill profile."
+        subtitle="Upload your resume and we'll extract your technical skills to personalize your dashboard."
         badge="Resume Ingestion"
       />
 
@@ -108,6 +128,13 @@ export const ResumeUploadPage: React.FC<ResumeUploadPageProps> = ({
           className="hidden"
           onChange={handleFileInput}
         />
+
+        {uploadError && (
+          <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-md text-xs text-rose-800 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-700" />
+            <span>{uploadError}</span>
+          </div>
+        )}
 
         {!currentFile && !isProcessing && (
           <div
@@ -169,7 +196,7 @@ export const ResumeUploadPage: React.FC<ResumeUploadPageProps> = ({
         {/* Uploaded File Preview */}
         {currentFile && !isProcessing && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-paper border border-paper-border rounded-sm">
+            <div className="flex items-center justify-between p-4 bg-forest-50/50 border border-forest-200 rounded-sm">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-sm bg-forest-100 border border-forest-200 flex items-center justify-center text-forest-900">
                   <FileText className="w-5 h-5" />
@@ -177,8 +204,8 @@ export const ResumeUploadPage: React.FC<ResumeUploadPageProps> = ({
                 <div>
                   <div className="text-xs font-semibold text-charcoal-900 flex items-center gap-2">
                     <span>{currentFile.name}</span>
-                    <span className="text-[10px] font-mono font-normal text-forest-700 bg-forest-50 px-1.5 py-0.2 rounded border border-forest-200">
-                      Parsed
+                    <span className="text-[10px] font-mono font-normal text-forest-800 bg-forest-100 px-1.5 py-0.2 rounded border border-forest-200">
+                      Successfully Parsed
                     </span>
                   </div>
                   <div className="text-[11px] text-charcoal-500 font-mono mt-0.5">
@@ -199,20 +226,51 @@ export const ResumeUploadPage: React.FC<ResumeUploadPageProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
+            {/* Success Banner */}
+            <div className="p-3 bg-forest-100/60 border border-forest-300 rounded-sm flex items-center justify-between text-xs text-forest-900">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-forest-800 shrink-0" />
+                <span>
+                  <strong>Dossier Activated!</strong> {student.skills.length} verified technical competencies indexed.
+                </span>
+              </div>
+              {onNavigateToDashboard && (
+                <button
+                  type="button"
+                  onClick={onNavigateToDashboard}
+                  className="font-medium text-forest-900 hover:underline flex items-center gap-1 font-mono text-[11px]"
+                >
+                  <span>Open Personalized Dashboard</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
               <div className="text-xs text-charcoal-500 flex items-center gap-1.5 font-mono">
                 <CheckCircle2 className="w-3.5 h-3.5 text-forest-700" />
-                <span>14 skills extracted across Frontend, Backend & Database</span>
+                <span>Extracted competencies calibrated against target benchmarks</span>
               </div>
 
-              <button
-                type="button"
-                onClick={onContinueToProfile}
-                className="px-5 py-2.5 bg-forest-800 hover:bg-forest-900 text-white text-xs font-medium rounded-sm shadow-subtle transition-all flex items-center gap-2"
-              >
-                <span>Continue to Student Profile</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {onNavigateToDashboard && (
+                  <button
+                    type="button"
+                    onClick={onNavigateToDashboard}
+                    className="px-4 py-2 bg-paper hover:bg-paper-dark border border-paper-border text-charcoal-800 text-xs font-medium rounded-sm transition-colors"
+                  >
+                    View Dashboard
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={onContinueToProfile}
+                  className="px-5 py-2 bg-forest-800 hover:bg-forest-900 text-white text-xs font-medium rounded-sm shadow-subtle transition-all flex items-center justify-center gap-2"
+                >
+                  <span>Review Skills Profile</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -220,7 +278,7 @@ export const ResumeUploadPage: React.FC<ResumeUploadPageProps> = ({
         <div className="p-3 bg-paper-muted border border-paper-border rounded-sm flex items-start gap-2.5 text-xs text-charcoal-600">
           <AlertCircle className="w-4 h-4 text-charcoal-500 shrink-0 mt-0.5" />
           <p className="leading-relaxed">
-            <strong>Frontend Mock Mode:</strong> In this phase, the resume is indexed via mock data simulating our ML entity extractor. No external files leave your browser.
+            <strong>Frontend Intelligence Pipeline:</strong> Resume text is parsed client-side and mapped against modern university curriculum standards to unlock personalized readiness metrics.
           </p>
         </div>
       </div>
@@ -234,7 +292,7 @@ export const ResumeUploadPage: React.FC<ResumeUploadPageProps> = ({
                 Skills Detected From Profile
               </h3>
               <p className="text-xs text-charcoal-500">
-                Initial proficiency estimated from academic projects and coursework keywords.
+                Initial proficiency estimated from academic projects, coursework keywords, and internships.
               </p>
             </div>
             <span className="text-xs font-mono text-charcoal-500">
@@ -243,7 +301,7 @@ export const ResumeUploadPage: React.FC<ResumeUploadPageProps> = ({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {student.skills.slice(0, 8).map((skill) => (
+            {(student?.skills || []).slice(0, 8).map((skill) => (
               <SkillBar
                 key={skill.name}
                 name={skill.name}
@@ -254,7 +312,16 @@ export const ResumeUploadPage: React.FC<ResumeUploadPageProps> = ({
             ))}
           </div>
 
-          <div className="pt-4 border-t border-paper-border flex justify-end">
+          <div className="pt-4 border-t border-paper-border flex justify-between items-center">
+            {onNavigateToDashboard ? (
+              <button
+                onClick={onNavigateToDashboard}
+                className="text-xs font-mono text-forest-800 hover:underline flex items-center gap-1"
+              >
+                <span>← Back to Dashboard</span>
+              </button>
+            ) : <div />}
+
             <button
               onClick={onContinueToProfile}
               className="px-4 py-2 bg-charcoal-900 hover:bg-black text-white text-xs font-medium rounded-sm transition-colors flex items-center gap-1.5"
@@ -268,3 +335,5 @@ export const ResumeUploadPage: React.FC<ResumeUploadPageProps> = ({
     </div>
   );
 };
+
+

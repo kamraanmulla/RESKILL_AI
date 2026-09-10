@@ -10,7 +10,8 @@ import {
   Briefcase,
   User,
   ArrowUpRight,
-  Sparkles
+  Sparkles,
+  Bot
 } from 'lucide-react';
 import { CareerRole } from '../../types';
 
@@ -23,32 +24,44 @@ export type NavItemId =
   | 'skill-gap'
   | 'roadmap'
   | 'learning'
-  | 'jobs';
+  | 'jobs'
+  | 'intelligence'
+  | 'coach';
 
 interface SidebarProps {
   currentTab: NavItemId;
   onSelectTab: (tab: NavItemId) => void;
   targetCareer: CareerRole;
   onViewLanding: () => void;
+  isPersonalized?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   currentTab,
   onSelectTab,
   targetCareer,
-  onViewLanding
+  onViewLanding,
+  isPersonalized = true
 }) => {
   const navItems = [
     { id: 'dashboard' as NavItemId, label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'resume' as NavItemId, label: 'My Resume', icon: FileText, badge: 'PDF' },
+    { id: 'resume' as NavItemId, label: 'My Resume', icon: FileText, badge: isPersonalized ? 'PDF' : 'Required' },
     { id: 'profile' as NavItemId, label: 'Student Profile', icon: User },
     { id: 'careers' as NavItemId, label: 'Career Selection', icon: Compass },
-    { id: 'match' as NavItemId, label: 'Career Match', icon: Target, indicator: `${targetCareer.currentMatchPercentage}%` },
+    {
+      id: 'match' as NavItemId,
+      label: 'Career Match',
+      icon: Target,
+      indicator: isPersonalized ? `${targetCareer.currentMatchPercentage}%` : '0%'
+    },
     { id: 'skill-gap' as NavItemId, label: 'Skill Gap', icon: BarChart3 },
-    { id: 'roadmap' as NavItemId, label: 'Roadmap', icon: Milestone, badge: 'Active' },
+    { id: 'roadmap' as NavItemId, label: 'Roadmap', icon: Milestone, badge: isPersonalized ? 'Active' : 'Locked' },
     { id: 'learning' as NavItemId, label: 'Learning', icon: BookOpen },
-    { id: 'jobs' as NavItemId, label: 'Jobs & Internships', icon: Briefcase }
+    { id: 'jobs' as NavItemId, label: 'Jobs & Internships', icon: Briefcase },
+    { id: 'intelligence' as NavItemId, label: 'Career Intelligence', icon: Sparkles, badge: 'Multi-Vector' },
+    { id: 'coach' as NavItemId, label: 'AI Career Coach', icon: Bot, badge: 'AI' }
   ];
+
 
   return (
     <aside className="w-64 bg-paper-card border-r border-paper-border h-screen sticky top-0 flex flex-col justify-between select-none z-30">

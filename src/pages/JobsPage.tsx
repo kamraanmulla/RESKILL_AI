@@ -14,6 +14,7 @@ import {
 import { SectionHeader } from '../components/common/SectionHeader';
 import { Modal } from '../components/common/Modal';
 import { JobOpportunity } from '../types';
+import { api } from '../services/api';
 
 interface JobsPageProps {
   jobs: JobOpportunity[];
@@ -32,15 +33,28 @@ export const JobsPage: React.FC<JobsPageProps> = ({
     ? jobs
     : jobs.filter((j) => j.workMode === workModeFilter);
 
-  const handleApply = (jobId: string) => {
-    setAppliedJobs({ ...appliedJobs, [jobId]: true });
+  const handleApply = (job: JobOpportunity) => {
+    setAppliedJobs((prev) => ({ ...prev, [job.id]: true }));
+    if (job.sourceUrl) {
+      try {
+        const parsed = new URL(job.sourceUrl);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+          api.recordJobApplyClick(job.id).catch(() => {});
+          window.open(job.sourceUrl, '_blank', 'noopener,noreferrer');
+        } else {
+          console.warn('Blocked non-http(s) job URL:', job.sourceUrl);
+        }
+      } catch (err) {
+        console.warn('Malformed job URL:', job.sourceUrl);
+      }
+    }
   };
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       <SectionHeader
         title="Opportunities for you"
-        subtitle="Curated junior roles and campus internships matched against your current technical capability profile."
+        subtitle="Curated roles and internships matched against your current capability profile. All applications link directly to verified official job postings."
         badge="Opportunity Portal"
         action={
           <span className="font-mono text-xs text-charcoal-500">
@@ -53,7 +67,7 @@ export const JobsPage: React.FC<JobsPageProps> = ({
       <div className="p-4 bg-paper rounded-sm border border-paper-border flex items-start gap-3 text-xs text-charcoal-600">
         <Info className="w-4 h-4 text-forest-800 shrink-0 mt-0.5" />
         <div className="leading-relaxed">
-          <strong className="text-charcoal-900 font-semibold">Algorithmic Matching:</strong> Job recommendations will be personalized using your profile and skill progress. As you complete roadmap modules, your compatibility score across listings will update in real time.
+          <strong className="text-charcoal-900 font-semibold">Direct Verified Applications:</strong> ReSkillAI does not simulate or fake job submissions. Clicking apply redirects you directly to the verified listing on LinkedIn or the employer's official careers portal.
         </div>
       </div>
 
@@ -80,7 +94,7 @@ export const JobsPage: React.FC<JobsPageProps> = ({
       <div className="space-y-4">
         {filteredJobs.map((job) => {
           const isHighMatch = job.matchPercentage >= 85;
-          const isApplied = appliedJobs[job.id];
+          const isClicked = appliedJobs[job.id];
 
           return (
             <div
@@ -97,6 +111,19 @@ export const JobsPage: React.FC<JobsPageProps> = ({
                     <span className="px-2 py-0.5 text-[10px] font-mono rounded bg-paper-muted text-charcoal-600 border border-paper-border">
                       {job.type}
                     </span>
+                    <span className="px-2 py-0.5 text-[10px] font-mono rounded bg-forest-50 text-forest-800 border border-forest-200">
+                      {job.source || 'LinkedIn'}
+                    </span>
+                    {job.isDemoSample && (
+                      <span className="px-2 py-0.5 text-[10px] font-mono rounded bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
+                        SAMPLE
+                      </span>
+                    )}
+                    {isClicked && (
+                      <span className="px-2 py-0.5 text-[10px] font-mono rounded bg-paper-muted text-charcoal-600 border border-paper-border">
+                        Application Opened
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3 text-xs text-charcoal-500 font-mono mt-1.5">
@@ -120,12 +147,12 @@ export const JobsPage: React.FC<JobsPageProps> = ({
                 <div className="flex items-center gap-2 self-start">
                   <div
                     className={`px-3 py-1 rounded-sm border font-mono text-xs font-semibold flex items-center gap-1.5 ${
-                      isHighMatch
+                      isHighMatch && !job.isDemoSample
                         ? 'bg-forest-100 text-forest-900 border-forest-200'
                         : 'bg-paper-muted text-charcoal-800 border-paper-border'
                     }`}
                   >
-                    <span>Match: {job.matchPercentage}%</span>
+                    <span>{job.isDemoSample ? 'Sample Listing' : `Match: ${job.matchPercentage}%`}</span>
                   </div>
 
                   <button
@@ -192,11 +219,18 @@ export const JobsPage: React.FC<JobsPageProps> = ({
                   </button>
 
                   <button
-                    onClick={() => setSelectedJob(job)}
-                    className="px-4 py-1.5 bg-forest-800 hover:bg-forest-900 text-white text-xs font-medium rounded-sm shadow-subtle transition-colors flex items-center gap-1.5"
+                    onClick={() => handleApply(job)}
+                    className="px-3.5 py-1.5 bg-forest-800 hover:bg-forest-900 text-white text-xs font-medium rounded-sm shadow-subtle transition-colors flex items-center gap-1.5"
                   >
-                    <span>View Opportunity</span>
+                    <span>Apply on {job.source || 'LinkedIn'}</span>
                     <ExternalLink className="w-3 h-3" />
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedJob(job)}
+                    className="px-3 py-1.5 border border-paper-border hover:bg-paper-muted text-charcoal-700 text-xs rounded-sm transition-colors"
+                  >
+                    Details
                   </button>
                 </div>
               </div>
@@ -262,8 +296,9 @@ export const JobsPage: React.FC<JobsPageProps> = ({
 
             {/* Application Action */}
             <div className="pt-4 border-t border-paper-border flex items-center justify-between">
-              <span className="text-[11px] text-charcoal-500 font-mono">
-                Direct college referral pipeline active
+              <span className="text-[11px] text-charcoal-500 font-mono flex items-center gap-1.5">
+                <ExternalLink className="w-3 h-3 text-forest-700" />
+                Opens verified listing on {selectedJob.source || 'LinkedIn'}
               </span>
 
               <div className="flex items-center gap-2">
@@ -277,21 +312,11 @@ export const JobsPage: React.FC<JobsPageProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => handleApply(selectedJob.id)}
-                  disabled={appliedJobs[selectedJob.id]}
-                  className="px-4 py-1.5 bg-forest-800 hover:bg-forest-900 disabled:opacity-75 text-white font-medium rounded-sm shadow-subtle flex items-center gap-1.5"
+                  onClick={() => handleApply(selectedJob)}
+                  className="px-4 py-1.5 bg-forest-800 hover:bg-forest-900 text-white font-medium rounded-sm shadow-subtle flex items-center gap-1.5"
                 >
-                  {appliedJobs[selectedJob.id] ? (
-                    <>
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Application Logged</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-3.5 h-3.5" />
-                      <span>Submit Profile</span>
-                    </>
-                  )}
+                  <span>Apply on {selectedJob.source || 'LinkedIn'}</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>

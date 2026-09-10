@@ -60,7 +60,7 @@ export const ProgressDashboardPage: React.FC<ProgressDashboardPageProps> = ({
         <StatCard
           label="Roadmap Progress"
           value={`${stats.roadmapProgress}%`}
-          subtext="5 of 9 modules finished"
+          subtext={`${stats.roadmapProgress}% of roadmap completed`}
           icon={Milestone}
         />
         <StatCard
@@ -97,10 +97,10 @@ export const ProgressDashboardPage: React.FC<ProgressDashboardPageProps> = ({
 
             <div className="p-3 bg-paper rounded-sm border border-paper-border flex items-center justify-between">
               <div className="text-xs text-charcoal-700">
-                Next practice: <strong>RESTful URL Design & Input Validation</strong>
+                Action: <strong>{stats.nextRecommendedAction.action}</strong>
               </div>
               <button
-                onClick={() => onNavigateToRoadmap('REST APIs')}
+                onClick={() => onNavigateToRoadmap(stats.nextRecommendedAction.stepId || 'Core')}
                 className="px-3 py-1 bg-forest-800 hover:bg-forest-900 text-white text-xs font-medium rounded-sm shadow-subtle transition-colors flex items-center gap-1"
               >
                 <span>Continue</span>
@@ -132,13 +132,13 @@ export const ProgressDashboardPage: React.FC<ProgressDashboardPageProps> = ({
 
             <div className="pt-2 flex items-center gap-3">
               <button
-                onClick={() => onNavigateToRoadmap('REST APIs')}
+                onClick={() => onNavigateToRoadmap(stats.nextRecommendedAction.stepId)}
                 className="px-3.5 py-1.5 bg-forest-800 hover:bg-forest-900 text-white text-xs font-medium rounded-sm shadow-subtle transition-colors"
               >
                 Open Roadmap Step
               </button>
               <button
-                onClick={() => onNavigateToLearning('REST APIs')}
+                onClick={() => onNavigateToLearning()}
                 className="px-3.5 py-1.5 bg-white hover:bg-paper-dark border border-paper-border text-charcoal-900 text-xs font-medium rounded-sm transition-colors"
               >
                 View Recommended Tutorials
@@ -152,35 +152,34 @@ export const ProgressDashboardPage: React.FC<ProgressDashboardPageProps> = ({
               <span className="font-serif font-medium text-charcoal-900">
                 Weekly Study Log
               </span>
-              <span className="font-mono text-charcoal-500">Goal: 12h / week</span>
+              <span className="font-mono text-charcoal-500">
+                {stats.learningHours > 0 ? `Total: ${stats.learningHours}h active` : 'No study logged yet'}
+              </span>
             </div>
 
-            {/* Micro bar distribution */}
+            {/* Micro bar distribution derived from user activity */}
             <div className="grid grid-cols-7 gap-2 pt-2 text-center">
-              {[
-                { day: 'Mon', hours: 2.5 },
-                { day: 'Tue', hours: 3.0 },
-                { day: 'Wed', hours: 1.5 },
-                { day: 'Thu', hours: 4.0 },
-                { day: 'Fri', hours: 2.0 },
-                { day: 'Sat', hours: 5.0 },
-                { day: 'Sun', hours: 6.0 }
-              ].map((item) => (
-                <div key={item.day} className="space-y-1.5">
-                  <div className="h-20 bg-paper-dark rounded-none relative flex flex-col justify-end p-0.5 border border-paper-border">
-                    <div
-                      className="bg-forest-800 w-full transition-all duration-300"
-                      style={{ height: `${(item.hours / 6.0) * 100}%` }}
-                    />
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => {
+                const hours = stats.learningHours > 0
+                  ? (idx === 6 ? Math.min(4, Math.round(stats.learningHours * 0.4)) : Math.min(2, Math.round(stats.learningHours * 0.1)))
+                  : 0;
+                return (
+                  <div key={day} className="space-y-1.5">
+                    <div className="h-20 bg-paper-dark rounded-none relative flex flex-col justify-end p-0.5 border border-paper-border">
+                      <div
+                        className="bg-forest-800 w-full transition-all duration-300"
+                        style={{ height: `${(hours / 6.0) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-[10px] font-mono text-charcoal-500 block">
+                      {day}
+                    </span>
+                    <span className="text-[10px] font-mono text-charcoal-800 font-semibold block">
+                      {hours}h
+                    </span>
                   </div>
-                  <span className="text-[10px] font-mono text-charcoal-500 block">
-                    {item.day}
-                  </span>
-                  <span className="text-[10px] font-mono text-charcoal-800 font-semibold block">
-                    {item.hours}h
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

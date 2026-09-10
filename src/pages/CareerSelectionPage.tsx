@@ -39,11 +39,13 @@ export const CareerSelectionPage: React.FC<CareerSelectionPageProps> = ({
   const handleSuggestCareer = () => {
     setIsSuggesting(true);
     setTimeout(() => {
-      const bestCareer = careers.find((c) => c.id === 'career_fullstack') || careers[0];
+      // Pick highest match percentage career based on real user profile, or first career
+      const sorted = [...careers].sort((a, b) => b.currentMatchPercentage - a.currentMatchPercentage);
+      const bestCareer = sorted[0] || careers[0];
       setSuggestedCareer(bestCareer);
       setIsSuggesting(false);
       setSuggestionModalOpen(true);
-    }, 600);
+    }, 400);
   };
 
   const handleAcceptSuggestion = (careerId: string) => {
@@ -229,16 +231,19 @@ export const CareerSelectionPage: React.FC<CareerSelectionPageProps> = ({
                 {suggestedCareer.title}
               </div>
               <p className="text-charcoal-700 leading-relaxed text-xs">
-                Your strong performance in JavaScript (85%) and React (80%), coupled with your academic projects (CampusTrade MERN app), gives you the fastest ramp into <strong>Full Stack Engineering</strong>.
+                {suggestedCareer.currentMatchPercentage > 0
+                  ? `Based on your verified profile and current skills, ${suggestedCareer.title} offers your highest capability alignment (${suggestedCareer.currentMatchPercentage}% compatibility).`
+                  : `Explore ${suggestedCareer.title} as a primary trajectory. Calibrate your profile with skills or upload your resume to calculate your exact hiring alignment score.`}
               </p>
             </div>
 
             <div className="space-y-2">
-              <div className="font-medium text-charcoal-900">Recommended Next Steps:</div>
+              <div className="font-medium text-charcoal-900">Recommended Trajectory Focus:</div>
               <ul className="list-disc list-inside space-y-1 text-charcoal-600 font-mono text-[11px]">
-                <li>Benchmark current Node.js and REST API knowledge.</li>
-                <li>Close the 35% gap on containerization with Docker.</li>
-                <li>Follow the 9-step Full Stack timeline roadmap.</li>
+                {suggestedCareer.coreSkills.slice(0, 3).map((skill) => (
+                  <li key={skill}>Master core competency: {skill}</li>
+                ))}
+                <li>Follow the personalized timeline roadmap for {suggestedCareer.title}.</li>
               </ul>
             </div>
 
@@ -255,7 +260,7 @@ export const CareerSelectionPage: React.FC<CareerSelectionPageProps> = ({
                 onClick={() => handleAcceptSuggestion(suggestedCareer.id)}
                 className="px-4 py-1.5 bg-forest-800 hover:bg-forest-900 text-white font-medium rounded-sm shadow-subtle flex items-center gap-1.5"
               >
-                <span>Select Full Stack Developer</span>
+                <span>Select {suggestedCareer.title}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>

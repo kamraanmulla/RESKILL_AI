@@ -1,6 +1,8 @@
-export type SkillCategory = 'Frontend' | 'Backend' | 'Database' | 'Tools' | 'Other';
+export type SkillCategory = 'Frontend' | 'Backend' | 'Database' | 'Tools' | 'Security' | 'AI/ML' | 'Cloud' | 'Other';
 
 export type SkillLevel = 'Novice' | 'Familiar' | 'Proficient' | 'Expert';
+
+export type ProfileState = 'ZERO_KNOWLEDGE' | 'PROFILE_INCOMPLETE' | 'PROFILE_READY' | 'PERSONALIZED';
 
 export interface Skill {
   name: string;
@@ -33,31 +35,78 @@ export interface StudentCertification {
   credentialId?: string;
 }
 
+export interface AssessmentOption {
+  id: string;
+  text: string;
+  domainSignal: string;
+  styleSignal?: string;
+  traitSignal?: string;
+}
+
+export interface AssessmentQuestion {
+  id: string;
+  question?: string;
+  subtext?: string;
+  title?: string;
+  subtitle?: string;
+  options: AssessmentOption[];
+}
+
+export interface AssessmentSignals {
+  domainPreferences: string[];
+  problemSolvingStyle?: string;
+  workStyleSignals: string[];
+  primaryMotivation?: string;
+  careerInterestScores: Record<string, number>;
+}
+
 export interface StudentProfile {
   id: string;
   name: string;
   email: string;
   phone: string;
   degree: string;
+  field?: string;
   institution: string;
   graduationYear: number;
   cgpa: number;
   bio: string;
   targetCareerId: string;
+  profileState: ProfileState;
   resumeFile: {
     name: string;
     size: string;
     uploadedAt: string;
   } | null;
+  skills: Skill[];
+  interests: string[];
+  careerInterest?: string;
+  practicalExperience?: string;
   experience: StudentExperience[];
   projects: StudentProject[];
   certifications: StudentCertification[];
-  skills: Skill[];
   preferences: {
     weeklyHours: number;
     learningStyle: 'video' | 'reading' | 'interactive';
     notifications: boolean;
   };
+  assessmentSignals?: AssessmentSignals | null;
+  profileCompleteness: number; // 0 - 100
+  careerReadiness?: number;
+  readinessTier?: string;
+  isDemo?: boolean;
+}
+
+export interface MinimalOnboardingRequest {
+  name?: string;
+  education: string;
+  degree?: string;
+  field?: string;
+  academicLevel?: string;
+  skills: string[];
+  interests: string[];
+  careerDirection: string;
+  practicalExperienceText?: string;
 }
 
 export interface CareerRole {
@@ -100,13 +149,40 @@ export interface CareerMatch {
   }>;
 }
 
+export interface CareerRecommendation {
+  career: CareerRole;
+  matchScore: number;
+  confidence: 'High' | 'Moderate' | 'Emerging' | 'Uncalibrated' | number;
+  matchedSkills: string[];
+  missingSkills: string[];
+  interestAlignment: number;
+  explanation: string;
+}
+
+export interface ReadinessBreakdown {
+  skillAlignmentPoints: number; // Max 450
+  practicalExperiencePoints: number; // Max 250
+  assessmentPoints: number; // Max 150
+  educationPoints: number; // Max 150
+  totalPoints: number; // Max 1000
+}
+
+export interface ReadinessResult {
+  readinessScore: number; // 0 - 100%
+  readinessPoints: number; // 0 - 1000
+  readinessLevel: 'Uncalibrated' | 'Early Foundation' | 'Developing' | 'Proficient' | 'Industry Ready';
+  breakdown: ReadinessBreakdown;
+  statusMessage: string;
+  recommendationHint: string;
+}
+
 export interface SkillGapItem {
   skill: string;
-  category: SkillCategory;
+  category: SkillCategory | string;
   yourLevel: number;
   requiredLevel: number;
   gap: number;
-  priority: 'Strong' | 'High' | 'Medium' | 'Low';
+  priority: 'Strong' | 'Developing' | 'Gap' | 'High' | 'Medium' | 'Low';
   status: 'Mastered' | 'In Progress' | 'Not Started';
   recommendation: string;
 }
@@ -126,6 +202,7 @@ export interface RoadmapStep {
   status: 'completed' | 'in_progress' | 'upcoming';
   whyItMatters: string;
   topics: string[];
+  skillsCovered?: string[];
   recommendedResources: RoadmapResource[];
   practiceProject: {
     title: string;
@@ -163,9 +240,22 @@ export interface JobOpportunity {
   compensation: string;
   postedAgo: string;
   isSaved?: boolean;
+  applyClicked?: boolean;
+  isDemoSample?: boolean;
+  source: 'LinkedIn' | 'Company Website' | 'Campus Placement Portal' | 'Indeed' | 'Glassdoor';
+  sourceUrl: string;
   description: string;
   responsibilities: string[];
   qualifications: string[];
+}
+
+export interface NextCareerProgression {
+  currentCareerTitle: string;
+  nextCareerRole: string;
+  specializations: string[];
+  transferableSkills: string[];
+  skillsToAcquire: string[];
+  rationale: string;
 }
 
 export interface ProgressStats {
@@ -192,3 +282,78 @@ export interface ProgressStats {
     type: 'completed' | 'uploaded' | 'saved' | 'started';
   }>;
 }
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  academicLevel?: string;
+  isGuest?: boolean;
+  isDemo?: boolean;
+}
+
+export interface HiddenCompetency {
+  skill: string;
+  confidence: number;
+  source: string;
+  evidence: string;
+  reasoning: string;
+  explicitOrInferred: 'inferred' | 'explicit';
+}
+
+export interface TransferabilityResult {
+  sourceCareer: string;
+  destinationCareer: string;
+  overallScore: number;
+  transferableSkills: string[];
+  bridgeSkills: string[];
+  missingSkills: string[];
+  explanation: string;
+}
+
+export interface SkillCombination {
+  combination: string[];
+  career: string;
+  confidence: number;
+  supportingSkills: string[];
+  missingSkills: string[];
+  explanation: string;
+}
+
+export interface SkillContradiction {
+  skill: string;
+  claimedProficiency: string;
+  evidenceProficiency: string;
+  evidenceSources: string[];
+  severity: 'LOW' | 'MEDIUM' | 'HIGH';
+  explanation: string;
+  recommendation: string;
+}
+
+export interface SkillObsolescence {
+  skill: string;
+  trend: 'Stable' | 'Watch' | 'Declining Relevance' | 'Emerging Replacement';
+  reason: string;
+  confidence: number;
+  recommendedSkills: string[];
+  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  datasetSource: string;
+}
+
+export interface AdvancedIntelligenceSummary {
+  hiddenCompetencies: HiddenCompetency[];
+  transferability: TransferabilityResult;
+  combinations: SkillCombination[];
+  contradictions: SkillContradiction[];
+  obsolescence: SkillObsolescence[];
+  profileState: ProfileState;
+}
+
+export interface CoachChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  source?: string;
+  timestamp: string;
+}
+

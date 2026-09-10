@@ -11,23 +11,25 @@ import {
 } from 'lucide-react';
 import { SectionHeader } from '../components/common/SectionHeader';
 import { Modal } from '../components/common/Modal';
-import { RoadmapStep } from '../types';
+import { RoadmapStep, CareerRole } from '../types';
 
 interface RoadmapPageProps {
   roadmap: RoadmapStep[];
+  targetCareer?: CareerRole;
   onToggleStepStatus: (stepId: string, newStatus: 'completed' | 'in_progress' | 'upcoming') => void;
   onNavigateToLearning: (skillTag?: string) => void;
 }
 
 export const RoadmapPage: React.FC<RoadmapPageProps> = ({
   roadmap,
+  targetCareer,
   onToggleStepStatus,
   onNavigateToLearning
 }) => {
   const [selectedStep, setSelectedStep] = useState<RoadmapStep | null>(null);
 
   const completedCount = roadmap.filter((s) => s.status === 'completed').length;
-  const progressPercent = Math.round((completedCount / roadmap.length) * 100);
+  const progressPercent = roadmap.length > 0 ? Math.round((completedCount / roadmap.length) * 100) : 0;
 
   const handleOpenStep = (step: RoadmapStep) => {
     setSelectedStep(step);
@@ -45,8 +47,8 @@ export const RoadmapPage: React.FC<RoadmapPageProps> = ({
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <SectionHeader
-        title="Full Stack Career Roadmap"
-        subtitle="A sequential, 9-stage engineering curriculum designed to eliminate your specific skill gaps."
+        title={`${targetCareer?.title || 'Personalized'} Career Roadmap`}
+        subtitle={`A sequential, ${roadmap.length}-stage curriculum tailored to your capability profile and active skill gaps.`}
         badge="Curriculum Timeline"
         action={
           <div className="flex items-center gap-2 font-mono text-xs text-charcoal-600">
@@ -155,7 +157,7 @@ export const RoadmapPage: React.FC<RoadmapPageProps> = ({
 
                 {/* Key topics pills */}
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  {step.topics.slice(0, 3).map((topic, i) => (
+                  {(step.topics || []).slice(0, 3).map((topic, i) => (
                     <span
                       key={i}
                       className="px-2 py-0.5 text-[10px] font-mono rounded bg-paper-muted text-charcoal-600 border border-paper-border"
@@ -163,9 +165,9 @@ export const RoadmapPage: React.FC<RoadmapPageProps> = ({
                       {topic}
                     </span>
                   ))}
-                  {step.topics.length > 3 && (
+                  {(step.topics || []).length > 3 && (
                     <span className="px-1.5 py-0.5 text-[10px] font-mono text-charcoal-400">
-                      +{step.topics.length - 3} more
+                      +{(step.topics || []).length - 3} more
                     </span>
                   )}
                 </div>

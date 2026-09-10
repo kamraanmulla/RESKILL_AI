@@ -10,7 +10,9 @@ import {
   User,
   Compass,
   BarChart3,
-  BookOpen
+  BookOpen,
+  Sparkles,
+  Bot
 } from 'lucide-react';
 import { NavItemId } from './Sidebar';
 
@@ -45,7 +47,9 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     { id: 'skill-gap' as NavItemId, label: 'Skill Gap Breakdown', icon: BarChart3 },
     { id: 'roadmap' as NavItemId, label: 'Learning Roadmap', icon: Milestone },
     { id: 'learning' as NavItemId, label: 'Curated Learning', icon: BookOpen },
-    { id: 'jobs' as NavItemId, label: 'Jobs & Opportunities', icon: Briefcase }
+    { id: 'jobs' as NavItemId, label: 'Jobs & Opportunities', icon: Briefcase },
+    { id: 'intelligence' as NavItemId, label: 'Career Intelligence', icon: Sparkles },
+    { id: 'coach' as NavItemId, label: 'AI Career Coach', icon: Bot }
   ];
 
   return (

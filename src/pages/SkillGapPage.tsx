@@ -24,9 +24,14 @@ export const SkillGapPage: React.FC<SkillGapPageProps> = ({
 
   const filteredGaps = priorityFilter === 'All'
     ? skillGaps
-    : skillGaps.filter((g) => g.priority === priorityFilter);
+    : skillGaps.filter((g) => {
+        if (priorityFilter === 'High') return g.priority === 'High' || g.priority === 'Gap';
+        if (priorityFilter === 'Medium') return g.priority === 'Medium' || g.priority === 'Developing';
+        if (priorityFilter === 'Strong') return g.priority === 'Strong';
+        return g.priority === priorityFilter;
+      });
 
-  const topPriorities = skillGaps.filter((g) => g.priority === 'High');
+  const topPriorities = skillGaps.filter((g) => g.priority === 'High' || g.priority === 'Gap').slice(0, 2);
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">

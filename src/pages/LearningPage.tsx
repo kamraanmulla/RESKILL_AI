@@ -28,8 +28,11 @@ export const LearningPage: React.FC<LearningPageProps> = ({
   const [selectedFormat, setSelectedFormat] = useState('All');
   const [activePlayerResource, setActivePlayerResource] = useState<LearningResource | null>(null);
 
-  const skillFilters = ['All', 'Node.js', 'REST APIs', 'Docker', 'MongoDB', 'Authentication', 'Testing', 'Backend'];
-  const formatFilters = ['All', 'YouTube', 'Documentation'];
+  const availableSkills = Array.from(new Set(resources.map((r) => r.skillTag).filter(Boolean))).sort();
+  const skillFilters = ['All', ...availableSkills];
+
+  const availableFormats = Array.from(new Set(resources.map((r) => r.platform).filter(Boolean))).sort();
+  const formatFilters = ['All', ...availableFormats];
 
   const filteredResources = resources.filter((res) => {
     const matchSkill = selectedSkill === 'All' || res.skillTag.toLowerCase() === selectedSkill.toLowerCase();

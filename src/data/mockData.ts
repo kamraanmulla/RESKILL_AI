@@ -20,6 +20,9 @@ export const mockStudent: StudentProfile = {
   cgpa: 8.7,
   bio: 'Final-year Computer Science undergraduate passionate about full-stack web architectures, distributed systems, and modern developer tooling. Seeking an entry-level software engineering trajectory.',
   targetCareerId: 'career_fullstack',
+  profileState: 'PERSONALIZED',
+  profileCompleteness: 92,
+  interests: ['Full Stack Development', 'Distributed Systems'],
   resumeFile: {
     name: 'Parvez_Ahmed_Resume_2026.pdf',
     size: '248 KB',
@@ -632,7 +635,8 @@ export const mockJobs: JobOpportunity[] = [
     missingSkills: ['Docker'],
     compensation: '₹7.2 – 9.5 LPA',
     postedAgo: '2 days ago',
-    isSaved: true,
+    source: 'LinkedIn',
+    sourceUrl: 'https://www.linkedin.com/jobs/view/3890214890',
     description: 'We are seeking an early-career Full Stack Developer to build refined workspace tooling. You will collaborate on frontend interfaces and contribute to clean RESTful services.',
     responsibilities: [
       'Develop modular React and TypeScript components matching Figma design specifications.',
@@ -658,6 +662,8 @@ export const mockJobs: JobOpportunity[] = [
     compensation: '₹8.0 – 11.0 LPA',
     postedAgo: 'Just now',
     isSaved: false,
+    source: 'Company Website',
+    sourceUrl: 'https://vercel.com/careers',
     description: 'Join an agile product engineering group delivering high-velocity web experiences. We value semantic HTML, sub-second interaction speed, and craftsmanship.',
     responsibilities: [
       'Write clean, accessible, and high-performance client code in React.',
@@ -683,6 +689,8 @@ export const mockJobs: JobOpportunity[] = [
     compensation: '₹40,000 / month',
     postedAgo: '3 days ago',
     isSaved: false,
+    source: 'LinkedIn',
+    sourceUrl: 'https://www.linkedin.com/jobs/view/3890214892',
     description: 'A 6-month pre-placement internship opportunity for final year students. Gain hands-on exposure to payment workflows, API design, and cloud deployments.',
     responsibilities: [
       'Build internal administrative tooling dashboards in React.',
@@ -708,6 +716,8 @@ export const mockJobs: JobOpportunity[] = [
     compensation: '₹8.5 – 12.0 LPA',
     postedAgo: '5 days ago',
     isSaved: false,
+    source: 'Company Website',
+    sourceUrl: 'https://razorpay.com/jobs',
     description: 'Help scale core payment processing microservices. You will work closely with database engineers and infrastructure specialists to ensure five-nines uptime.',
     responsibilities: [
       'Write high-throughput Node.js microservices handling concurrent transactions.',
@@ -733,6 +743,8 @@ export const mockJobs: JobOpportunity[] = [
     compensation: '₹9.0 – 13.0 LPA',
     postedAgo: '1 week ago',
     isSaved: true,
+    source: 'LinkedIn',
+    sourceUrl: 'https://www.linkedin.com/jobs/view/3890214895',
     description: 'Build web applications that empower millions of developers worldwide to design, test, and document their API workflows.',
     responsibilities: [
       'Develop collaborative API testing interfaces in modern React.',
@@ -797,3 +809,69 @@ export const mockProgressStats: ProgressStats = {
     }
   ]
 };
+
+export const createBlankStudentProfile = (user?: { id?: string; name?: string; email?: string }): StudentProfile => ({
+  id: user?.id || 'std_guest',
+  name: user?.name || 'New Candidate',
+  email: user?.email || '',
+  phone: '',
+  degree: '',
+  institution: '',
+  graduationYear: 2026,
+  cgpa: 0,
+  bio: '',
+  targetCareerId: '',
+  profileState: 'ZERO_KNOWLEDGE',
+  profileCompleteness: 0,
+  interests: [],
+  resumeFile: null,
+  experience: [],
+  projects: [],
+  certifications: [],
+  skills: [],
+  preferences: {
+    weeklyHours: 10,
+    learningStyle: 'video',
+    notifications: true
+  }
+});
+
+export const createBlankProgressStats = (): ProgressStats => ({
+  careerReadiness: 0,
+  skillsCompleted: { completed: 0, total: 0 },
+  roadmapProgress: 0,
+  learningHours: 0,
+  studyStreakDays: 0,
+  currentFocus: {
+    title: 'Profile Initialization Required',
+    subtitle: 'Upload your resume or build your skill profile to set focus',
+    hoursLeft: '0 hours'
+  },
+  nextRecommendedAction: {
+    action: 'Activate Your Profile',
+    reason: 'The system starts with zero knowledge about your skills. Provide a resume or create your profile.',
+    impact: 'Unlocks Career Readiness',
+    stepId: 'step_01'
+  },
+  recentActivity: [
+    {
+      id: 'act_zero',
+      action: 'Initialized zero-knowledge candidate workspace',
+      time: 'Just now',
+      type: 'started'
+    }
+  ]
+});
+
+export const createBlankCareerMatch = (careerId = 'career_fullstack', careerTitle = 'Full Stack Developer'): CareerMatch => ({
+  careerId,
+  careerTitle,
+  overallMatch: 0,
+  strongMatches: [],
+  needsImprovement: [],
+  benchmarkComparison: []
+});
+
+export const createBlankSkillGaps = (): SkillGapItem[] => [];
+
+

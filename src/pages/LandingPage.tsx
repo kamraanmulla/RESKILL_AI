@@ -14,6 +14,7 @@ interface LandingPageProps {
   onStartResume: () => void;
   onExploreCareers: () => void;
   onEnterDashboard: () => void;
+  onOpenAuth?: () => void;
   targetCareer: CareerRole;
 }
 
@@ -21,6 +22,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onStartResume,
   onExploreCareers,
   onEnterDashboard,
+  onOpenAuth,
   targetCareer
 }) => {
   return (
@@ -44,7 +46,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           <div className="flex items-center gap-3">
             <button
-              onClick={onEnterDashboard}
+              onClick={onOpenAuth || onEnterDashboard}
               className="text-xs text-charcoal-700 hover:text-charcoal-900 font-medium px-3 py-1.5 rounded-sm hover:bg-paper-muted transition-colors"
             >
               Sign In
@@ -59,6 +61,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </div>
       </header>
+
 
       {/* Hero Section */}
       <section className="pt-14 pb-16 px-4 sm:px-6 border-b border-paper-border">
@@ -128,7 +131,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Live Editorial Preview
                 </span>
                 <h3 className="font-serif text-2xl font-medium text-charcoal-900 mt-0.5">
-                  Parvez Ahmed — Career Readiness Overview
+                  Candidate Portfolio — Career Readiness Overview
                 </h3>
                 <p className="text-xs text-charcoal-600">
                   Target Trajectory: <strong className="text-charcoal-900">{targetCareer.title}</strong>

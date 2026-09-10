@@ -1,47 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Bell,
   Search,
   Menu,
   Check,
-  GraduationCap
+  GraduationCap,
+  LogOut,
+  Sparkles,
+  RotateCcw,
+  User,
+  ShieldCheck,
+  LogIn,
+  ChevronDown
 } from 'lucide-react';
-import { StudentProfile } from '../../types';
+import { StudentProfile, AuthUser } from '../../types';
 
 interface TopbarProps {
   currentPageTitle: string;
   student: StudentProfile;
+  user: AuthUser | null;
   onOpenMobileNav: () => void;
   onOpenProfile: () => void;
+  onOpenAuth: () => void;
+  onLogout: () => void;
+  onResetToZeroKnowledge: () => void;
+  onLoadDemoProfile: () => void;
 }
 
 export const Topbar: React.FC<TopbarProps> = ({
   currentPageTitle,
   student,
+  user,
   onOpenMobileNav,
-  onOpenProfile
+  onOpenProfile,
+  onOpenAuth,
+  onLogout,
+  onResetToZeroKnowledge,
+  onLoadDemoProfile
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close menus on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const isPersonalized = Boolean(student.resumeFile !== null || (student.skills && student.skills.length > 0));
 
   const notifications = [
     {
       id: 1,
-      title: 'Roadmap Milestone Unlocked',
-      text: 'Module 05: REST API Design is ready for study.',
-      time: '2h ago'
+      title: isPersonalized ? 'Roadmap Milestone Active' : 'System Initialized',
+      text: isPersonalized
+        ? 'Module 05: REST API Design is prioritized for your target role.'
+        : 'Zero-knowledge candidate environment active.',
+      time: 'Just now'
     },
     {
       id: 2,
-      title: 'New Job Opportunity Match',
-      text: 'Junior Full Stack Developer at Linear (87% match).',
-      time: '1d ago'
-    },
-    {
-      id: 3,
-      title: 'Resume Skills Extracted',
-      text: '14 skills successfully indexed from uploaded PDF.',
-      time: 'Yesterday'
+      title: isPersonalized ? 'Market Benchmark Synchronized' : 'Profile Required',
+      text: isPersonalized
+        ? `${student.skills.length} skills indexed against target career benchmarks.`
+        : 'Provide your resume or enter skills to unlock personalized hiring match.',
+      time: '5m ago'
     }
   ];
 
@@ -83,6 +113,12 @@ export const Topbar: React.FC<TopbarProps> = ({
 
       {/* Right: Notifications & User snippet */}
       <div className="flex items-center gap-3">
+        {/* Testing Switcher Shortcut Pill */}
+        <div className="hidden md:flex items-center gap-1.5 px-2 py-1 bg-paper border border-paper-border rounded text-[11px] font-mono text-charcoal-600">
+          <span className={`w-2 h-2 rounded-full ${isPersonalized ? 'bg-forest-600' : 'bg-editorial-amber'}`} />
+          <span>{isPersonalized ? 'Personalized' : 'Zero-Knowledge'}</span>
+        </div>
+
         {/* Notifications toggle */}
         <div className="relative">
           <button
@@ -123,24 +159,106 @@ export const Topbar: React.FC<TopbarProps> = ({
           )}
         </div>
 
-        {/* User profile capsule */}
-        <button
-          onClick={onOpenProfile}
-          className="flex items-center gap-2.5 pl-2 pr-1 py-1 rounded-sm hover:bg-paper-muted transition-colors border border-transparent hover:border-paper-border"
-        >
-          <div className="text-right hidden sm:block">
-            <div className="text-xs font-semibold text-charcoal-900 leading-tight">
-              {student.name}
+        {/* User Account Capsule / Dropdown */}
+        <div className="relative" ref={userMenuRef}>
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="flex items-center gap-2.5 pl-2 pr-1.5 py-1 rounded-sm hover:bg-paper-muted transition-colors border border-transparent hover:border-paper-border text-left"
+          >
+            <div className="text-right hidden sm:block">
+              <div className="text-xs font-semibold text-charcoal-900 leading-tight">
+                {student.name || 'Candidate'}
+              </div>
+              <div className="text-[10px] font-mono text-charcoal-500 flex items-center justify-end gap-1">
+                <GraduationCap className="w-2.5 h-2.5" />
+                <span>{isPersonalized ? 'Calibrated' : 'Zero-Knowledge'}</span>
+              </div>
             </div>
-            <div className="text-[10px] font-mono text-charcoal-500 flex items-center justify-end gap-1">
-              <GraduationCap className="w-2.5 h-2.5" />
-              <span>B.Tech '26</span>
+            <div className="w-7 h-7 rounded-sm bg-forest-800 text-white font-serif text-xs font-semibold flex items-center justify-center">
+              {student.name ? student.name.charAt(0) : 'C'}
             </div>
-          </div>
-          <div className="w-7 h-7 rounded-sm bg-forest-800 text-white font-serif text-xs font-semibold flex items-center justify-center">
-            {student.name.charAt(0)}
-          </div>
-        </button>
+            <ChevronDown className="w-3 h-3 text-charcoal-400 hidden sm:block" />
+          </button>
+
+          {/* User Account Menu Dropdown */}
+          {showUserMenu && (
+            <div className="absolute right-0 mt-2 w-72 bg-white border border-paper-border rounded-md shadow-modal p-2 z-40 animate-in fade-in text-xs space-y-1">
+              <div className="p-2.5 border-b border-paper-border">
+                <div className="font-semibold text-charcoal-900 truncate">
+                  {student.name}
+                </div>
+                <div className="text-[11px] text-charcoal-500 font-mono truncate">
+                  {student.email || 'guest@reskill.ai'}
+                </div>
+                <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono bg-paper border border-paper-border">
+                  <span className={`w-1.5 h-1.5 rounded-full ${isPersonalized ? 'bg-forest-600' : 'bg-editorial-amber'}`} />
+                  <span>{isPersonalized ? `${student.skills.length} Skills Calibrated` : 'Zero-Knowledge Slate'}</span>
+                </div>
+              </div>
+
+              <div className="py-1">
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    onOpenProfile();
+                  }}
+                  className="w-full px-2.5 py-1.5 text-left rounded hover:bg-paper-muted flex items-center gap-2 text-charcoal-700 hover:text-charcoal-900"
+                >
+                  <User className="w-3.5 h-3.5 text-charcoal-500" />
+                  <span>Student Profile & Skills</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    onResetToZeroKnowledge();
+                  }}
+                  className="w-full px-2.5 py-1.5 text-left rounded hover:bg-paper-muted flex items-center gap-2 text-editorial-amber hover:text-editorial-amber"
+                  title="Reset profile to 0 skills to test cold start"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-editorial-amber" />
+                  <span>Reset to Zero-Knowledge Slate</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    onLoadDemoProfile();
+                  }}
+                  className="w-full px-2.5 py-1.5 text-left rounded hover:bg-paper-muted flex items-center gap-2 text-forest-800 hover:text-forest-900 font-medium"
+                  title="Loads Parvez Ahmed's profile"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-forest-700" />
+                  <span>Load Demo Student (Parvez Ahmed)</span>
+                </button>
+              </div>
+
+              <div className="pt-1 border-t border-paper-border space-y-0.5">
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    onOpenAuth();
+                  }}
+                  className="w-full px-2.5 py-1.5 text-left rounded hover:bg-paper-muted flex items-center gap-2 text-charcoal-700"
+                >
+                  <LogIn className="w-3.5 h-3.5 text-charcoal-500" />
+                  <span>Switch Account / Sign In</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    onLogout();
+                  }}
+                  className="w-full px-2.5 py-1.5 text-left rounded hover:bg-editorial-rustLight/50 flex items-center gap-2 text-editorial-rust"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-editorial-rust" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
