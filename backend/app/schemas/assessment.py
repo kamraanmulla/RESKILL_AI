@@ -1,5 +1,5 @@
-from typing import List, Dict, Optional
-from pydantic import BaseModel, model_validator
+from typing import List, Dict, Optional, Literal, Any
+from pydantic import BaseModel, Field, model_validator
 
 class AssessmentOption(BaseModel):
     id: str
@@ -40,3 +40,118 @@ class AssessmentEvaluationResult(BaseModel):
     workStyleSignals: List[str]
     primaryMotivation: str
     careerInterestScores: Dict[str, int]
+
+# ==============================================================================
+# Adaptive Career Intelligence Assessment Schemas
+# ==============================================================================
+
+ConfidenceLevel = Literal["guessing", "somewhat_confident", "confident", "very_confident"]
+InterestRating = Literal["not_interested", "slightly_interested", "interested", "very_interested"]
+
+class AdaptiveOptionView(BaseModel):
+    id: str
+    text: str
+
+class AdaptiveQuestionView(BaseModel):
+    id: str
+    number: int
+    totalEstimatedQuestions: int
+    domain: str
+    domainLabel: str
+    skill: str
+    difficulty: str
+    questionType: str
+    question: str
+    scenario: Optional[str] = None
+    options: List[AdaptiveOptionView]
+    phase: str
+    isAdaptiveFollowUp: bool = False
+    contextNote: Optional[str] = None
+
+class SubmitAnswerRequest(BaseModel):
+    questionId: str
+    selectedOptionId: str
+    confidence: Optional[ConfidenceLevel] = "confident"
+
+class DomainInterestItem(BaseModel):
+    domain: str
+    interestLevel: InterestRating
+
+class SubmitInterestRequest(BaseModel):
+    domainInterests: List[DomainInterestItem]
+    scenarioPreference: Optional[str] = None
+
+class PracticalScenarioView(BaseModel):
+    id: str
+    domain: str
+    domainLabel: str
+    title: str
+    scenarioText: str
+    contextSnippet: Optional[str] = None
+    options: List[AdaptiveOptionView]
+
+class SubmitPracticalRequest(BaseModel):
+    scenarioId: str
+    selectedOptionId: str
+    reasoning: Optional[str] = ""
+
+class DomainKnowledgeSignal(BaseModel):
+    domain: str
+    domainLabel: str
+    demonstratedKnowledge: int
+    evidenceCount: int
+    skillsDemonstrated: List[str] = []
+    confidenceSignal: str
+    practicalScore: int
+    interestLevel: str
+    evidenceStrength: str
+    uncertainty: str
+
+class CareerPathwayResult(BaseModel):
+    careerId: str
+    title: str
+    category: str
+    matchScore: int
+    knowledgeAlignment: str
+    interestLevel: str
+    practicalEvidence: str
+    existingSkills: List[str] = []
+    transferableSkills: List[str] = []
+    missingSkills: List[str] = []
+    requiredSkills: List[str] = []
+    explanation: str
+
+class DiscoveredCombinationResult(BaseModel):
+    career: str
+    combination: List[str]
+    confidence: float
+    supportingSkills: List[str]
+    missingSkills: List[str]
+    explanation: str
+
+class CareerIntelligenceProfile(BaseModel):
+    userId: str = "std_guest"
+    completedAt: str
+    totalQuestionsAnswered: int
+    isMultiDomain: bool = False
+    profileObservation: str
+    breadthVsDepth: str
+    theoryVsPractical: str
+    domainSignals: Dict[str, DomainKnowledgeSignal]
+    discoveredCombinations: List[DiscoveredCombinationResult] = []
+    relevantPathways: List[CareerPathwayResult] = []
+    suggestedNextDevelopment: List[str] = []
+
+class AssessmentSessionState(BaseModel):
+    sessionId: str
+    userId: str
+    currentPhase: str  # "MIXED_DISCOVERY", "ADAPTIVE_EXPLORATION", "INTEREST_DISCOVERY", "PRACTICAL_CHALLENGE", "COMPLETED"
+    questionNumber: int
+    totalEstimatedQuestions: int
+    questionsAnsweredCount: int
+    currentQuestion: Optional[AdaptiveQuestionView] = None
+    currentPracticalScenario: Optional[PracticalScenarioView] = None
+    isComplete: bool = False
+    preliminarySignals: Optional[Dict[str, int]] = None
+    profile: Optional[CareerIntelligenceProfile] = None
+

@@ -138,7 +138,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       ) : (
         <div className="space-y-4">
           {/* Assessment Calibration Prompt if not completed */}
-          {!student.assessmentSignals && onStartAssessment && (
+          {!student.assessmentSignals && onStartAssessment ? (
             <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-charcoal-700">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center shrink-0">
@@ -146,10 +146,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 </div>
                 <div>
                   <span className="font-semibold text-charcoal-900 block">
-                    Complete 4-Question Career Cognitive Assessment (+150 Readiness Points)
+                    Complete Adaptive Career Intelligence Assessment (+150 Readiness Points)
                   </span>
                   <span className="text-[11px] text-charcoal-600">
-                    Understand how you think, debug, and work to align your hiring readiness points.
+                    Discover your demonstrated knowledge signals, interests, confidence, practical ability, and multi-domain pathways.
                   </span>
                 </div>
               </div>
@@ -158,10 +158,33 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 onClick={onStartAssessment}
                 className="px-4 py-1.5 bg-forest-800 hover:bg-forest-900 text-white font-medium rounded-sm shadow-subtle text-xs transition-colors shrink-0"
               >
-                Start Assessment (4 Qs) →
+                Start Adaptive Assessment →
               </button>
             </div>
-          )}
+          ) : student.assessmentSignals && onStartAssessment ? (
+            <div className="p-3.5 bg-forest-50/70 border border-forest-200 rounded-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-forest-900">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-full bg-forest-800 text-white flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="font-semibold text-charcoal-900 block">
+                    Career Intelligence Profile Calibrated
+                  </span>
+                  <span className="text-[11px] text-charcoal-600">
+                    {student.assessmentSignals.profileObservation || 'Demonstrated knowledge and relevant career pathways mapped.'}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onStartAssessment}
+                className="px-3.5 py-1.5 bg-white hover:bg-paper-muted border border-forest-300 text-forest-900 font-medium rounded-sm shadow-subtle text-xs transition-colors shrink-0"
+              >
+                Review Intelligence Profile →
+              </button>
+            </div>
+          ) : null}
 
           {/* PERSONALIZED NEXT BEST ACTION CARD */}
           <div className="p-5 bg-white border border-forest-800/80 rounded-md shadow-card relative overflow-hidden">

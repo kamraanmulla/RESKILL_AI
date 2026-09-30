@@ -15,9 +15,12 @@ class JobOpportunity(BaseModel):
     postedAgo: str
     isSaved: bool = False
     isDemoSample: bool = False
-    source: Literal["LinkedIn", "Company Website", "Campus Placement Portal"] = "LinkedIn"
+    isVerifiedUrl: bool = False
+    verificationStatus: Literal["verified_active", "sample_unverified", "invalid_url"] = "sample_unverified"
+    source: Literal["LinkedIn", "Company Website", "Campus Placement Portal", "Indeed", "Glassdoor"] = "LinkedIn"
     sourceUrl: str
     description: str
     responsibilities: List[str]
     qualifications: List[str]
     applyClicked: bool = False
+

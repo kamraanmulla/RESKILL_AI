@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Literal
+from typing import List, Optional, Dict, Literal, Any
 from pydantic import BaseModel, Field
 
 ProfileState = Literal["ZERO_KNOWLEDGE", "PROFILE_INCOMPLETE", "PROFILE_READY", "PERSONALIZED"]
@@ -43,6 +43,18 @@ class AssessmentSignals(BaseModel):
     workStyleSignals: List[str] = []
     primaryMotivation: Optional[str] = None
     careerInterestScores: Dict[str, int] = {}
+    demonstratedKnowledge: Dict[str, int] = {}
+    interestSignals: Dict[str, str] = {}
+    confidenceSignal: Dict[str, str] = {}
+    practicalScores: Dict[str, int] = {}
+    evidenceCounts: Dict[str, int] = {}
+    skillsDemonstrated: List[str] = []
+    isMultiDomain: bool = False
+    discoveredCombinations: List[Dict[str, Any]] = []
+    profileObservation: Optional[str] = None
+    breadthVsDepth: Optional[str] = None
+    theoryVsPractical: Optional[str] = None
+    relevantPathways: List[Dict[str, Any]] = []
 
 class StudentPreferences(BaseModel):
     weeklyHours: int = 12

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
 from ...schemas.jobs import JobOpportunity
+from ...services.job_url_validator import validate_job_source_url
 from .profile_store import SAMPLE_JOBS, get_profile
 
 router = APIRouter(prefix="/jobs", tags=["Jobs & Opportunities"])
@@ -21,12 +22,17 @@ def list_jobs():
             else:
                 missing.append(req)
 
-        # In zero knowledge, match is 0 or demo sample
+        # In zero knowledge, match is 0
         if len(user_skill_names) == 0:
             match_pct = 0
         else:
             total_reqs = len(matched) + len(missing)
             match_pct = int(round((len(matched) / total_reqs) * 100.0)) if total_reqs > 0 else 50
+
+        # Validate URL dynamically to ensure integrity
+        is_valid_url, reason = validate_job_source_url(j.sourceUrl)
+        verified_flag = j.isVerifiedUrl and is_valid_url
+        status = "verified_active" if verified_flag else ("sample_unverified" if j.isDemoSample else "invalid_url")
 
         updated_jobs.append(
             j.model_copy(
@@ -34,7 +40,9 @@ def list_jobs():
                     "matchedSkills": matched if len(user_skill_names) > 0 else [],
                     "missingSkills": missing if len(user_skill_names) > 0 else (j.matchedSkills + j.missingSkills),
                     "matchPercentage": match_pct,
-                    "isDemoSample": len(user_skill_names) == 0
+                    "isDemoSample": j.isDemoSample,
+                    "isVerifiedUrl": verified_flag,
+                    "verificationStatus": status
                 }
             )
         )
@@ -55,11 +63,28 @@ def track_apply_click(job_id: str):
     if not job:
         raise HTTPException(status_code=404, detail="Job not found.")
 
+    is_valid, reason = validate_job_source_url(job.sourceUrl)
+    if not is_valid:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Job application URL is invalid ({reason}). Redirect blocked."
+        )
+
+    if job.isDemoSample or not job.isVerifiedUrl:
+        return {
+            "status": "sample_benchmark_notice",
+            "jobId": job_id,
+            "isDemoSample": True,
+            "message": "This is an illustrative benchmark position. External application is disabled."
+        }
+
     job.applyClicked = True
     return {
         "status": "redirect_logged",
         "jobId": job_id,
         "source": job.source,
         "sourceUrl": job.sourceUrl,
-        "message": f"Redirecting user externally to {job.source} ({job.sourceUrl})"
+        "isVerifiedUrl": True,
+        "message": f"Redirecting candidate to verified external job posting on {job.source} ({job.sourceUrl})"
     }
+

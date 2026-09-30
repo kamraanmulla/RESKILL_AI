@@ -19,7 +19,11 @@ import {
   SkillCombination,
   SkillContradiction,
   SkillObsolescence,
-  AdvancedIntelligenceSummary
+  AdvancedIntelligenceSummary,
+  AssessmentSessionState,
+  CareerIntelligenceProfile,
+  ConfidenceLevel,
+  InterestRating
 } from '../types';
 
 import {
@@ -405,6 +409,77 @@ export const api = {
     return { ...currentStudent };
   },
 
+  // ============================================================================
+  // Adaptive Career Intelligence Assessment Methods
+  // ============================================================================
+  async getAssessmentSession(): Promise<AssessmentSessionState> {
+    const res = await request<AssessmentSessionState>('/assessment/session');
+    if (res) return res;
+    return {
+      sessionId: 'sess_local',
+      userId: currentStudent.id,
+      currentPhase: 'MIXED_DISCOVERY',
+      questionNumber: 1,
+      totalEstimatedQuestions: 16,
+      questionsAnsweredCount: 0,
+      isComplete: false
+    };
+  },
+
+  async startAssessmentSession(forceNew = false): Promise<AssessmentSessionState> {
+    const res = await request<AssessmentSessionState>(`/assessment/session/start?force_new=${forceNew}`, {
+      method: 'POST'
+    });
+    if (res) return res;
+    return this.getAssessmentSession();
+  },
+
+  async answerAssessmentQuestion(
+    questionId: string,
+    selectedOptionId: string,
+    confidence: ConfidenceLevel = 'confident'
+  ): Promise<AssessmentSessionState> {
+    const res = await request<AssessmentSessionState>('/assessment/session/answer', {
+      method: 'POST',
+      body: JSON.stringify({ questionId, selectedOptionId, confidence })
+    });
+    if (res) return res;
+    return this.getAssessmentSession();
+  },
+
+  async submitAssessmentInterests(
+    domainInterests: Array<{ domain: string; interestLevel: InterestRating }>,
+    scenarioPreference?: string
+  ): Promise<AssessmentSessionState> {
+    const res = await request<AssessmentSessionState>('/assessment/session/interest', {
+      method: 'POST',
+      body: JSON.stringify({ domainInterests, scenarioPreference })
+    });
+    if (res) return res;
+    return this.getAssessmentSession();
+  },
+
+  async submitAssessmentPractical(
+    scenarioId: string,
+    selectedOptionId: string,
+    reasoning?: string
+  ): Promise<CareerIntelligenceProfile> {
+    const res = await request<CareerIntelligenceProfile>('/assessment/session/practical', {
+      method: 'POST',
+      body: JSON.stringify({ scenarioId, selectedOptionId, reasoning })
+    });
+    if (res) {
+      await this.getProfile();
+      return res;
+    }
+    throw new Error('Failed to submit practical challenge.');
+  },
+
+  async getCareerIntelligenceProfile(): Promise<CareerIntelligenceProfile | null> {
+    const res = await request<CareerIntelligenceProfile | null>('/assessment/profile');
+    return res || null;
+  },
+
   // Career Recommendations & Selection
   async getCareerRecommendations(): Promise<CareerRecommendation[]> {
     const res = await request<CareerRecommendation[]>('/careers/recommendations');
@@ -643,7 +718,7 @@ export const api = {
   async sendCareerCoachMessage(
     message: string,
     history?: Array<{ role: 'user' | 'assistant'; content: string }>
-  ): Promise<{ response: string; source: string; status: string }> {
+  ): Promise<{ response: string; source: string; status: string; error?: string }> {
     try {
       const res = await fetch(`${API_BASE}/coach/chat`, {
         method: 'POST',

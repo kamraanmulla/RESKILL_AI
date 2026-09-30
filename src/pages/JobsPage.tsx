@@ -34,6 +34,12 @@ export const JobsPage: React.FC<JobsPageProps> = ({
     : jobs.filter((j) => j.workMode === workModeFilter);
 
   const handleApply = (job: JobOpportunity) => {
+    if (job.isDemoSample || !job.isVerifiedUrl) {
+      // Benchmark role: show details modal instead of navigating to invalid external link
+      setSelectedJob(job);
+      return;
+    }
+
     setAppliedJobs((prev) => ({ ...prev, [job.id]: true }));
     if (job.sourceUrl) {
       try {
@@ -49,6 +55,7 @@ export const JobsPage: React.FC<JobsPageProps> = ({
       }
     }
   };
+
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -114,11 +121,16 @@ export const JobsPage: React.FC<JobsPageProps> = ({
                     <span className="px-2 py-0.5 text-[10px] font-mono rounded bg-forest-50 text-forest-800 border border-forest-200">
                       {job.source || 'LinkedIn'}
                     </span>
-                    {job.isDemoSample && (
+                    {job.isDemoSample || !job.isVerifiedUrl ? (
                       <span className="px-2 py-0.5 text-[10px] font-mono rounded bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
-                        SAMPLE
+                        BENCHMARK ROLE
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 text-[10px] font-mono rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        VERIFIED POSTING
                       </span>
                     )}
+
                     {isClicked && (
                       <span className="px-2 py-0.5 text-[10px] font-mono rounded bg-paper-muted text-charcoal-600 border border-paper-border">
                         Application Opened
@@ -218,13 +230,24 @@ export const JobsPage: React.FC<JobsPageProps> = ({
                     {job.isSaved ? 'Saved' : 'Save'}
                   </button>
 
-                  <button
-                    onClick={() => handleApply(job)}
-                    className="px-3.5 py-1.5 bg-forest-800 hover:bg-forest-900 text-white text-xs font-medium rounded-sm shadow-subtle transition-colors flex items-center gap-1.5"
-                  >
-                    <span>Apply on {job.source || 'LinkedIn'}</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </button>
+                  {job.isVerifiedUrl && !job.isDemoSample ? (
+                    <button
+                      onClick={() => handleApply(job)}
+                      className="px-3.5 py-1.5 bg-forest-800 hover:bg-forest-900 text-white text-xs font-medium rounded-sm shadow-subtle transition-colors flex items-center gap-1.5"
+                    >
+                      <span>Apply on {job.source || 'Portal'}</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setSelectedJob(job)}
+                      className="px-3.5 py-1.5 bg-paper-muted hover:bg-paper-border text-charcoal-800 text-xs font-medium border border-paper-border rounded-sm transition-colors flex items-center gap-1.5"
+                    >
+                      <Info className="w-3 h-3 text-charcoal-500" />
+                      <span>Benchmark Role</span>
+                    </button>
+                  )}
+
 
                   <button
                     onClick={() => setSelectedJob(job)}
@@ -259,6 +282,16 @@ export const JobsPage: React.FC<JobsPageProps> = ({
                 Match Score: {selectedJob.matchPercentage}%
               </div>
             </div>
+
+            {/* Benchmark notice if unverified or demo */}
+            {(!selectedJob.isVerifiedUrl || selectedJob.isDemoSample) && (
+              <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-sm text-amber-900 text-xs flex items-start gap-2.5">
+                <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">
+                  <strong className="font-semibold">Curated Capability Benchmark:</strong> This listing is an industry reference role utilized for skill gap analysis and pathway calibration. Direct external submission is disabled for benchmark roles.
+                </div>
+              </div>
+            )}
 
             {/* Description */}
             <div className="space-y-1.5">
@@ -296,29 +329,50 @@ export const JobsPage: React.FC<JobsPageProps> = ({
 
             {/* Application Action */}
             <div className="pt-4 border-t border-paper-border flex items-center justify-between">
-              <span className="text-[11px] text-charcoal-500 font-mono flex items-center gap-1.5">
-                <ExternalLink className="w-3 h-3 text-forest-700" />
-                Opens verified listing on {selectedJob.source || 'LinkedIn'}
-              </span>
+              {selectedJob.isVerifiedUrl && !selectedJob.isDemoSample ? (
+                <>
+                  <span className="text-[11px] text-charcoal-500 font-mono flex items-center gap-1.5">
+                    <ExternalLink className="w-3 h-3 text-forest-700" />
+                    Opens verified listing on {selectedJob.source || 'Official Portal'}
+                  </span>
 
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedJob(null)}
-                  className="px-3 py-1.5 border border-paper-border text-charcoal-600 rounded-sm hover:bg-paper-dark"
-                >
-                  Close
-                </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedJob(null)}
+                      className="px-3 py-1.5 border border-paper-border text-charcoal-600 rounded-sm hover:bg-paper-dark"
+                    >
+                      Close
+                    </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleApply(selectedJob)}
-                  className="px-4 py-1.5 bg-forest-800 hover:bg-forest-900 text-white font-medium rounded-sm shadow-subtle flex items-center gap-1.5"
-                >
-                  <span>Apply on {selectedJob.source || 'LinkedIn'}</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </button>
-              </div>
+                    <button
+                      type="button"
+                      onClick={() => handleApply(selectedJob)}
+                      className="px-4 py-1.5 bg-forest-800 hover:bg-forest-900 text-white font-medium rounded-sm shadow-subtle flex items-center gap-1.5"
+                    >
+                      <span>Apply on {selectedJob.source || 'Portal'}</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span className="text-[11px] text-charcoal-500 font-mono flex items-center gap-1.5">
+                    <Info className="w-3.5 h-3.5 text-amber-700" />
+                    Capability benchmark reference position
+                  </span>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedJob(null)}
+                      className="px-4 py-1.5 bg-charcoal-900 hover:bg-charcoal-800 text-white font-medium rounded-sm shadow-subtle text-xs"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </Modal>

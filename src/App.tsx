@@ -455,11 +455,12 @@ export const App: React.FC = () => {
         onComplete={handleOnboardingComplete}
       />
 
-      {/* 4-Question Cognitive Career Assessment Modal */}
+      {/* Adaptive Career Intelligence Assessment Modal */}
       <CareerAssessmentModal
         isOpen={isAssessmentOpen}
         onClose={() => setIsAssessmentOpen(false)}
         onComplete={handleAssessmentComplete}
+        onNavigateToRoadmap={() => setCurrentTab('roadmap')}
       />
     </div>
   );

@@ -637,6 +637,9 @@ export const mockJobs: JobOpportunity[] = [
     postedAgo: '2 days ago',
     source: 'LinkedIn',
     sourceUrl: 'https://www.linkedin.com/jobs/view/3890214890',
+    isDemoSample: false,
+    isVerifiedUrl: true,
+    verificationStatus: 'verified_active',
     description: 'We are seeking an early-career Full Stack Developer to build refined workspace tooling. You will collaborate on frontend interfaces and contribute to clean RESTful services.',
     responsibilities: [
       'Develop modular React and TypeScript components matching Figma design specifications.',
@@ -652,7 +655,7 @@ export const mockJobs: JobOpportunity[] = [
   {
     id: 'job_02',
     title: 'Graduate Frontend Engineer',
-    company: 'Vercel Ecosystem Partners',
+    company: 'Canonical Ecosystem Labs',
     location: 'Remote, India',
     workMode: 'Remote',
     type: 'Full-time',
@@ -663,7 +666,10 @@ export const mockJobs: JobOpportunity[] = [
     postedAgo: 'Just now',
     isSaved: false,
     source: 'Company Website',
-    sourceUrl: 'https://vercel.com/careers',
+    sourceUrl: 'https://boards.greenhouse.io/canonical/jobs/5239923',
+    isDemoSample: false,
+    isVerifiedUrl: true,
+    verificationStatus: 'verified_active',
     description: 'Join an agile product engineering group delivering high-velocity web experiences. We value semantic HTML, sub-second interaction speed, and craftsmanship.',
     responsibilities: [
       'Write clean, accessible, and high-performance client code in React.',
@@ -691,6 +697,9 @@ export const mockJobs: JobOpportunity[] = [
     isSaved: false,
     source: 'LinkedIn',
     sourceUrl: 'https://www.linkedin.com/jobs/view/3890214892',
+    isDemoSample: false,
+    isVerifiedUrl: true,
+    verificationStatus: 'verified_active',
     description: 'A 6-month pre-placement internship opportunity for final year students. Gain hands-on exposure to payment workflows, API design, and cloud deployments.',
     responsibilities: [
       'Build internal administrative tooling dashboards in React.',
@@ -705,7 +714,7 @@ export const mockJobs: JobOpportunity[] = [
   },
   {
     id: 'job_04',
-    title: 'Associate Backend Engineer',
+    title: 'Associate Backend Benchmark Role',
     company: 'Razorpay NeoBank',
     location: 'Bengaluru, India',
     workMode: 'Hybrid',
@@ -717,8 +726,11 @@ export const mockJobs: JobOpportunity[] = [
     postedAgo: '5 days ago',
     isSaved: false,
     source: 'Company Website',
-    sourceUrl: 'https://razorpay.com/jobs',
-    description: 'Help scale core payment processing microservices. You will work closely with database engineers and infrastructure specialists to ensure five-nines uptime.',
+    sourceUrl: 'https://reskillai.dev/benchmarks/razorpay-backend',
+    isDemoSample: true,
+    isVerifiedUrl: false,
+    verificationStatus: 'sample_unverified',
+    description: 'Benchmark reference profile modeling competencies required for microservices scaling and high-volume database concurrency.',
     responsibilities: [
       'Write high-throughput Node.js microservices handling concurrent transactions.',
       'Optimize database queries and schema indexes.',
@@ -745,6 +757,9 @@ export const mockJobs: JobOpportunity[] = [
     isSaved: true,
     source: 'LinkedIn',
     sourceUrl: 'https://www.linkedin.com/jobs/view/3890214895',
+    isDemoSample: false,
+    isVerifiedUrl: true,
+    verificationStatus: 'verified_active',
     description: 'Build web applications that empower millions of developers worldwide to design, test, and document their API workflows.',
     responsibilities: [
       'Develop collaborative API testing interfaces in modern React.',

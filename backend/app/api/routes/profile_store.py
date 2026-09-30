@@ -70,7 +70,9 @@ SAMPLE_JOBS: List[JobOpportunity] = [
         compensation="₹8.5 – 12.0 LPA",
         postedAgo="2 days ago",
         source="LinkedIn",
-        sourceUrl="https://www.linkedin.com/jobs/view/associate-software-engineer-razorpay",
+        sourceUrl="https://www.linkedin.com/jobs/view/3890214890",
+        isVerifiedUrl=True,
+        verificationStatus="verified_active",
         description="Build and scale consumer-facing fintech payment dashboards and real-time ledger settlement web interfaces.",
         responsibilities=[
             "Author modular, type-safe client interfaces in React and TypeScript.",
@@ -82,12 +84,12 @@ SAMPLE_JOBS: List[JobOpportunity] = [
             "Demonstrable fluency in JavaScript, React, and REST API conventions.",
             "Strong grasp of version control (Git) and responsive DOM styling."
         ],
-        isDemoSample=True
+        isDemoSample=False
     ),
     JobOpportunity(
         id="job_02",
         title="Junior Security Operations Analyst",
-        company="CrowdStrike India",
+        company="Canonical Labs",
         location="Pune, India",
         workMode="Hybrid",
         type="Full-time",
@@ -97,7 +99,9 @@ SAMPLE_JOBS: List[JobOpportunity] = [
         compensation="₹7.5 – 11.0 LPA",
         postedAgo="1 day ago",
         source="Company Website",
-        sourceUrl="https://crowdstrike.wd5.myworkdayjobs.com/crowdstrike_careers",
+        sourceUrl="https://boards.greenhouse.io/canonical/jobs/5239923",
+        isVerifiedUrl=True,
+        verificationStatus="verified_active",
         description="Monitor enterprise security telemetry, analyze endpoint alert anomalies, and assist in triage of defensive security events.",
         responsibilities=[
             "Monitor tier-1 security operations queues across SIEM and EDR platforms.",
@@ -109,12 +113,12 @@ SAMPLE_JOBS: List[JobOpportunity] = [
             "Familiarity with TCP/IP network layers and Linux command-line utilities.",
             "Analytical mindset with high attention to diagnostic detail."
         ],
-        isDemoSample=True
+        isDemoSample=False
     ),
     JobOpportunity(
         id="job_03",
-        title="AI Engineering Intern",
-        company="Sarvam AI",
+        title="AI Engineering Benchmark Intern",
+        company="Sarvam AI Labs",
         location="Bengaluru, India",
         workMode="On-site",
         type="Internship",
@@ -124,8 +128,10 @@ SAMPLE_JOBS: List[JobOpportunity] = [
         compensation="₹45,000 / month",
         postedAgo="3 days ago",
         source="LinkedIn",
-        sourceUrl="https://www.linkedin.com/jobs/view/ai-engineering-intern-sarvam",
-        description="Assist research scientists in curating training datasets and benchmarking transformer inference latency.",
+        sourceUrl="https://reskillai.dev/benchmarks/sarvam-ai-intern",
+        isVerifiedUrl=False,
+        verificationStatus="sample_unverified",
+        description="Benchmark reference position illustrating competency requirements for modern AI research internships.",
         responsibilities=[
             "Prepare clean evaluation benchmarks for multi-modal language models.",
             "Build data preprocessing and tokenization scripts in Python.",

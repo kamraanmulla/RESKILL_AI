@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from typing import List, Dict
+from typing import List, Dict, Optional
 from ...schemas.assessment import AssessmentQuestion, AssessmentOption, AssessmentSubmission, AssessmentEvaluationResult
 from ...schemas.profile import AssessmentSignals, StudentProfile
 from .profile_store import get_profile, set_profile
@@ -115,3 +115,66 @@ def submit_assessment(sub: AssessmentSubmission):
 
     set_profile(profile)
     return profile
+
+# ==============================================================================
+# Adaptive Assessment Endpoints
+# ==============================================================================
+
+from ...schemas.assessment import (
+    AssessmentSessionState,
+    SubmitAnswerRequest,
+    SubmitInterestRequest,
+    SubmitPracticalRequest,
+    CareerIntelligenceProfile
+)
+from ...services.assessment_session_store import assessment_session_store
+
+@router.get("/session", response_model=AssessmentSessionState)
+def get_assessment_session():
+    profile = get_profile()
+    return assessment_session_store.get_state(profile.id)
+
+@router.post("/session/start", response_model=AssessmentSessionState)
+def start_assessment_session(force_new: bool = False):
+    profile = get_profile()
+    if force_new:
+        assessment_session_store.reset_session(profile.id)
+    return assessment_session_store.get_state(profile.id)
+
+@router.post("/session/answer", response_model=AssessmentSessionState)
+def answer_assessment_question(req: SubmitAnswerRequest):
+    profile = get_profile()
+    return assessment_session_store.answer_question(
+        user_id=profile.id,
+        question_id=req.questionId,
+        selected_option_id=req.selectedOptionId,
+        confidence=req.confidence or "confident"
+    )
+
+@router.post("/session/interest", response_model=AssessmentSessionState)
+def submit_assessment_interests(req: SubmitInterestRequest):
+    profile = get_profile()
+    return assessment_session_store.submit_interests(
+        user_id=profile.id,
+        domain_interests=req.domainInterests,
+        scenario_preference=req.scenarioPreference
+    )
+
+@router.post("/session/practical", response_model=CareerIntelligenceProfile)
+def submit_assessment_practical(req: SubmitPracticalRequest):
+    profile = get_profile()
+    return assessment_session_store.submit_practical(
+        user_id=profile.id,
+        scenario_id=req.scenarioId,
+        selected_option_id=req.selectedOptionId,
+        reasoning=req.reasoning or ""
+    )
+
+@router.get("/profile", response_model=Optional[CareerIntelligenceProfile])
+def get_career_intelligence_profile():
+    profile = get_profile()
+    sess = assessment_session_store.get_session(profile.id)
+    if sess and sess.profile:
+        return sess.profile
+    return None
+

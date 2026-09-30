@@ -58,6 +58,118 @@ export interface AssessmentSignals {
   workStyleSignals: string[];
   primaryMotivation?: string;
   careerInterestScores: Record<string, number>;
+  demonstratedKnowledge?: Record<string, number>;
+  interestSignals?: Record<string, string>;
+  confidenceSignal?: Record<string, string>;
+  practicalScores?: Record<string, number>;
+  evidenceCounts?: Record<string, number>;
+  skillsDemonstrated?: string[];
+  isMultiDomain?: boolean;
+  discoveredCombinations?: any[];
+  profileObservation?: string;
+  breadthVsDepth?: string;
+  theoryVsPractical?: string;
+  relevantPathways?: any[];
+}
+
+export type ConfidenceLevel = 'guessing' | 'somewhat_confident' | 'confident' | 'very_confident';
+export type InterestRating = 'not_interested' | 'slightly_interested' | 'interested' | 'very_interested';
+
+export interface AdaptiveOptionView {
+  id: string;
+  text: string;
+}
+
+export interface AdaptiveQuestionView {
+  id: string;
+  number: number;
+  totalEstimatedQuestions: number;
+  domain: string;
+  domainLabel: string;
+  skill: string;
+  difficulty: string;
+  questionType: string;
+  question: string;
+  scenario?: string;
+  options: AdaptiveOptionView[];
+  phase: string;
+  isAdaptiveFollowUp: boolean;
+  contextNote?: string;
+}
+
+export interface PracticalScenarioView {
+  id: string;
+  domain: string;
+  domainLabel: string;
+  title: string;
+  scenarioText: string;
+  contextSnippet?: string;
+  options: AdaptiveOptionView[];
+}
+
+export interface DomainKnowledgeSignal {
+  domain: string;
+  domainLabel: string;
+  demonstratedKnowledge: number;
+  evidenceCount: number;
+  skillsDemonstrated: string[];
+  confidenceSignal: string;
+  practicalScore: number;
+  interestLevel: string;
+  evidenceStrength: string;
+  uncertainty: string;
+}
+
+export interface CareerPathwayResult {
+  careerId: string;
+  title: string;
+  category: string;
+  matchScore: number;
+  knowledgeAlignment: string;
+  interestLevel: string;
+  practicalEvidence: string;
+  existingSkills: string[];
+  transferableSkills: string[];
+  missingSkills: string[];
+  requiredSkills: string[];
+  explanation: string;
+}
+
+export interface DiscoveredCombinationResult {
+  career: string;
+  combination: string[];
+  confidence: number;
+  supportingSkills: string[];
+  missingSkills: string[];
+  explanation: string;
+}
+
+export interface CareerIntelligenceProfile {
+  userId: string;
+  completedAt: string;
+  totalQuestionsAnswered: number;
+  isMultiDomain: boolean;
+  profileObservation: string;
+  breadthVsDepth: string;
+  theoryVsPractical: string;
+  domainSignals: Record<string, DomainKnowledgeSignal>;
+  discoveredCombinations: DiscoveredCombinationResult[];
+  relevantPathways: CareerPathwayResult[];
+  suggestedNextDevelopment: string[];
+}
+
+export interface AssessmentSessionState {
+  sessionId: string;
+  userId: string;
+  currentPhase: 'MIXED_DISCOVERY' | 'ADAPTIVE_EXPLORATION' | 'INTEREST_DISCOVERY' | 'PRACTICAL_CHALLENGE' | 'COMPLETED';
+  questionNumber: number;
+  totalEstimatedQuestions: number;
+  questionsAnsweredCount: number;
+  currentQuestion?: AdaptiveQuestionView | null;
+  currentPracticalScenario?: PracticalScenarioView | null;
+  isComplete: boolean;
+  preliminarySignals?: Record<string, number> | null;
+  profile?: CareerIntelligenceProfile | null;
 }
 
 export interface StudentProfile {
@@ -242,7 +354,10 @@ export interface JobOpportunity {
   isSaved?: boolean;
   applyClicked?: boolean;
   isDemoSample?: boolean;
+  isVerifiedUrl?: boolean;
+  verificationStatus?: 'verified_active' | 'sample_unverified' | 'invalid_url';
   source: 'LinkedIn' | 'Company Website' | 'Campus Placement Portal' | 'Indeed' | 'Glassdoor';
+
   sourceUrl: string;
   description: string;
   responsibilities: string[];
