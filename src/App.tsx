@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
 import { api, isProfilePersonalized } from './services/api';
 import {
   StudentProfile,
@@ -44,14 +46,45 @@ import { JobsPage } from './pages/JobsPage';
 import { AdvancedIntelligencePage } from './pages/AdvancedIntelligencePage';
 import { AICoachPage } from './pages/AICoachPage';
 
+// Route to NavItemId mapping
+const ROUTE_TAB_MAP: Record<string, NavItemId> = {
+  '/dashboard': 'dashboard',
+  '/resume': 'resume',
+  '/profile': 'profile',
+  '/career': 'careers',
+  '/careers': 'careers',
+  '/match': 'match',
+  '/skill-gap': 'skill-gap',
+  '/roadmap': 'roadmap',
+  '/learning': 'learning',
+  '/jobs': 'jobs',
+  '/intelligence': 'intelligence',
+  '/coach': 'coach'
+};
+
+const normalizePath = (raw?: string): string => {
+  if (typeof window === 'undefined') return '/';
+  const path = (raw || window.location.pathname).toLowerCase().split('?')[0].replace(/\/+$/, '') || '/';
+  return path;
+};
+
 export const App: React.FC = () => {
+  const initialPath = normalizePath();
+  const initialUser = api.getCurrentUser();
+
   // Global View Mode (Landing Page vs Main Platform Application)
-  const [isLandingView, setIsLandingView] = useState(false);
-  const [currentTab, setCurrentTab] = useState<NavItemId>('dashboard');
+  const [isLandingView, setIsLandingView] = useState<boolean>(() => initialPath === '/landing');
+  const [currentTab, setCurrentTab] = useState<NavItemId>(() => {
+    if (initialUser && initialPath in ROUTE_TAB_MAP) {
+      return ROUTE_TAB_MAP[initialPath];
+    }
+    return 'dashboard';
+  });
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>(() => initialPath === '/signup' ? 'signup' : 'signin');
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   // Authentication State
-  const [user, setUser] = useState<AuthUser | null>(() => api.getCurrentUser());
+  const [user, setUser] = useState<AuthUser | null>(() => initialUser);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
 
@@ -117,9 +150,121 @@ export const App: React.FC = () => {
     setStats(loadedStats);
   };
 
+  // Validate session on mount
   useEffect(() => {
-    refreshAllData();
+    const initAuth = async () => {
+      const verified = await api.validateSession();
+      if (verified) {
+        setUser(verified);
+        await refreshAllData();
+      } else {
+        setUser(null);
+        const path = normalizePath();
+        if (path !== '/landing' && path !== '/signup') {
+          window.history.replaceState(null, '', '/login');
+        }
+      }
+    };
+    initAuth();
   }, []);
+
+  // Synchronize URL and enforce route guards
+  useEffect(() => {
+    const syncRoute = () => {
+      const path = normalizePath();
+      if (!user) {
+        if (path === '/landing') {
+          setIsLandingView(true);
+        } else {
+          setIsLandingView(false);
+          const targetMode = path === '/signup' ? 'signup' : 'signin';
+          setAuthMode(targetMode);
+          if (path !== '/login' && path !== '/signup') {
+            window.history.replaceState(null, '', '/login');
+          }
+        }
+      } else {
+        if (path === '/landing') {
+          setIsLandingView(true);
+        } else if (path === '/login' || path === '/signup' || path === '/') {
+          setIsLandingView(false);
+          setCurrentTab('dashboard');
+          window.history.replaceState(null, '', '/dashboard');
+        } else if (path === '/assessment') {
+          setIsLandingView(false);
+          setCurrentTab('dashboard');
+          setIsAssessmentOpen(true);
+          window.history.replaceState(null, '', '/dashboard');
+        } else if (path in ROUTE_TAB_MAP) {
+          setIsLandingView(false);
+          setCurrentTab(ROUTE_TAB_MAP[path]);
+        } else {
+          setIsLandingView(false);
+          setCurrentTab('dashboard');
+          window.history.replaceState(null, '', '/dashboard');
+        }
+      }
+    };
+
+    syncRoute();
+    window.addEventListener('popstate', syncRoute);
+    return () => window.removeEventListener('popstate', syncRoute);
+  }, [user]);
+
+  // Navigate to tab and update browser history URL
+  const navigateToTab = (tab: NavItemId) => {
+    setCurrentTab(tab);
+    setIsLandingView(false);
+    const path = tab === 'careers' ? '/career' : `/${tab}`;
+    if (normalizePath() !== path) {
+      window.history.pushState(null, '', path);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Android Native Hardware Back Button Handler
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    let handle: any = null;
+    CapApp.addListener('backButton', () => {
+      if (isAuthModalOpen) {
+        setIsAuthModalOpen(false);
+        return;
+      }
+      if (isAssessmentOpen) {
+        setIsAssessmentOpen(false);
+        return;
+      }
+      if (isOnboardingOpen) {
+        setIsOnboardingOpen(false);
+        return;
+      }
+      if (isMobileDrawerOpen) {
+        setIsMobileDrawerOpen(false);
+        return;
+      }
+      if (isLandingView) {
+        setIsLandingView(false);
+        return;
+      }
+
+      if (currentTab !== 'dashboard') {
+        navigateToTab('dashboard');
+        return;
+      }
+
+      CapApp.minimizeApp().catch(() => CapApp.exitApp());
+    }).then((h) => {
+      handle = h;
+    });
+
+    return () => {
+      if (handle) {
+        handle.remove();
+      }
+    };
+  }, [isAuthModalOpen, isAssessmentOpen, isOnboardingOpen, isMobileDrawerOpen, isLandingView, currentTab]);
 
   const currentTargetCareer = careers.find((c) => c.id === student.targetCareerId) || careers[0];
   const personalized = isProfilePersonalized(student);
@@ -127,8 +272,10 @@ export const App: React.FC = () => {
   // Auth Handlers
   const handleLoginSuccess = async (authUser: AuthUser) => {
     setUser(authUser);
+    setIsLandingView(false);
+    setCurrentTab('dashboard');
+    window.history.replaceState(null, '', '/dashboard');
     await refreshAllData();
-    // For fresh real candidates with no resume or skills, trigger minimal onboarding flow
     if (!authUser.isDemo && (!student.skills || student.skills.length === 0)) {
       setIsOnboardingOpen(true);
     }
@@ -138,34 +285,40 @@ export const App: React.FC = () => {
   const handleOnboardingComplete = async (updatedProfile: StudentProfile) => {
     setIsOnboardingOpen(false);
     await refreshAllData();
-    // Flow transitions seamlessly: Onboarding -> Short Assessment
     setIsAssessmentOpen(true);
   };
 
   const handleAssessmentComplete = async (updatedProfile: StudentProfile) => {
     setIsAssessmentOpen(false);
     await refreshAllData();
-    setCurrentTab('dashboard');
+    navigateToTab('dashboard');
   };
 
   const handleLogout = async () => {
     await api.logout();
     setUser(null);
-    await refreshAllData();
+    setIsLandingView(false);
     setCurrentTab('dashboard');
+    window.history.replaceState(null, '', '/login');
+    setStudent(createBlankStudentProfile());
+    setCareerMatch(createBlankCareerMatch());
+    setSkillGaps(createBlankSkillGaps());
+    setRoadmap([]);
+    setStats(createBlankProgressStats());
   };
 
   const handleResetToZeroKnowledge = async () => {
     await api.resetToZeroKnowledge();
     await refreshAllData();
-    setCurrentTab('dashboard');
+    navigateToTab('dashboard');
   };
 
   const handleLoadDemoProfile = async () => {
     await api.loadDemoProfile();
     await refreshAllData();
-    setCurrentTab('dashboard');
+    navigateToTab('dashboard');
   };
+
 
   // Actions
   const handleSelectCareer = async (careerId: string) => {
@@ -236,8 +389,12 @@ export const App: React.FC = () => {
   if (!user && !isLandingView) {
     return (
       <LoginPage
+        initialMode={authMode}
         onLoginSuccess={handleLoginSuccess}
-        onExploreLanding={() => setIsLandingView(true)}
+        onExploreLanding={() => {
+          setIsLandingView(true);
+          window.history.pushState(null, '', '/landing');
+        }}
       />
     );
   }
@@ -250,20 +407,32 @@ export const App: React.FC = () => {
           targetCareer={currentTargetCareer}
           onStartResume={() => {
             setIsLandingView(false);
-            if (user) setCurrentTab('resume');
+            if (user) {
+              navigateToTab('resume');
+            } else {
+              window.history.pushState(null, '', '/login');
+            }
           }}
           onExploreCareers={() => {
             setIsLandingView(false);
-            if (user) setCurrentTab('careers');
+            if (user) {
+              navigateToTab('careers');
+            } else {
+              window.history.pushState(null, '', '/login');
+            }
           }}
           onEnterDashboard={() => {
             setIsLandingView(false);
-            if (user) setCurrentTab('dashboard');
+            if (user) {
+              navigateToTab('dashboard');
+            } else {
+              window.history.pushState(null, '', '/login');
+            }
           }}
           onOpenAuth={() => {
             setIsLandingView(false);
             if (!user) {
-              setAuthModalMode('signin');
+              window.history.pushState(null, '', '/login');
             }
           }}
         />
@@ -283,24 +452,24 @@ export const App: React.FC = () => {
       <div className="hidden md:block shrink-0">
         <Sidebar
           currentTab={currentTab}
-          onSelectTab={(tab) => {
-            setCurrentTab(tab);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
+          onSelectTab={navigateToTab}
           targetCareer={currentTargetCareer}
-          onViewLanding={() => setIsLandingView(true)}
+          onViewLanding={() => {
+            setIsLandingView(true);
+            window.history.pushState(null, '', '/landing');
+          }}
           isPersonalized={personalized}
         />
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 pb-20 md:pb-10">
+      <div className="flex-1 flex flex-col min-w-0 pb-28 md:pb-10">
         <Topbar
           currentPageTitle={pageTitles[currentTab]}
           student={student}
           user={user}
           onOpenMobileNav={() => setIsMobileDrawerOpen(true)}
-          onOpenProfile={() => setCurrentTab('profile')}
+          onOpenProfile={() => navigateToTab('profile')}
           onOpenAuth={() => {
             setAuthModalMode('signin');
             setIsAuthModalOpen(true);
@@ -319,10 +488,7 @@ export const App: React.FC = () => {
               skillGaps={skillGaps}
               roadmap={roadmap}
               resources={resources}
-              onNavigate={(tab) => {
-                setCurrentTab(tab);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onNavigate={navigateToTab}
               onSelectRoadmapStep={navigateToRoadmapWithFilter}
               onLoadDemoProfile={handleLoadDemoProfile}
               onUploadSampleResume={() => handleResumeUpload({
@@ -340,8 +506,8 @@ export const App: React.FC = () => {
             <ResumeUploadPage
               student={student}
               onUploadSuccess={handleResumeUpload}
-              onContinueToProfile={() => setCurrentTab('profile')}
-              onNavigateToDashboard={() => setCurrentTab('dashboard')}
+              onContinueToProfile={() => navigateToTab('profile')}
+              onNavigateToDashboard={() => navigateToTab('dashboard')}
             />
           )}
 
@@ -350,9 +516,9 @@ export const App: React.FC = () => {
               student={student}
               careers={careers}
               onUpdateProfile={handleUpdateProfile}
-              onNavigateToCareers={() => setCurrentTab('careers')}
-              onNavigateToResume={() => setCurrentTab('resume')}
-              onNavigateToDashboard={() => setCurrentTab('dashboard')}
+              onNavigateToCareers={() => navigateToTab('careers')}
+              onNavigateToResume={() => navigateToTab('resume')}
+              onNavigateToDashboard={() => navigateToTab('dashboard')}
             />
           )}
 
@@ -361,7 +527,7 @@ export const App: React.FC = () => {
               careers={careers}
               selectedCareerId={student.targetCareerId}
               onSelectCareer={handleSelectCareer}
-              onViewCareerMatch={() => setCurrentTab('match')}
+              onViewCareerMatch={() => navigateToTab('match')}
             />
           )}
 
@@ -369,9 +535,9 @@ export const App: React.FC = () => {
             <CareerMatchPage
               career={currentTargetCareer}
               matchData={careerMatch}
-              onNavigateToSkillGap={() => setCurrentTab('skill-gap')}
-              onNavigateToRoadmap={() => setCurrentTab('roadmap')}
-              onNavigateToCareers={() => setCurrentTab('careers')}
+              onNavigateToSkillGap={() => navigateToTab('skill-gap')}
+              onNavigateToRoadmap={() => navigateToTab('roadmap')}
+              onNavigateToCareers={() => navigateToTab('careers')}
             />
           )}
 
@@ -411,7 +577,7 @@ export const App: React.FC = () => {
               student={student}
               careers={careers}
               onSelectCareer={handleSelectCareer}
-              onNavigateToRoadmap={() => setCurrentTab('roadmap')}
+              onNavigateToRoadmap={() => navigateToTab('roadmap')}
             />
           )}
 
@@ -419,8 +585,8 @@ export const App: React.FC = () => {
             <AICoachPage
               student={student}
               targetCareer={currentTargetCareer}
-              onNavigateToSkillGap={() => setCurrentTab('skill-gap')}
-              onNavigateToRoadmap={() => setCurrentTab('roadmap')}
+              onNavigateToSkillGap={() => navigateToTab('skill-gap')}
+              onNavigateToRoadmap={() => navigateToTab('roadmap')}
             />
           )}
         </main>
@@ -429,14 +595,12 @@ export const App: React.FC = () => {
       {/* Mobile Bottom Navigation & Drawer */}
       <MobileNav
         currentTab={currentTab}
-        onSelectTab={(tab) => {
-          setCurrentTab(tab);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onSelectTab={navigateToTab}
         isDrawerOpen={isMobileDrawerOpen}
         onCloseDrawer={() => setIsMobileDrawerOpen(false)}
         onOpenDrawer={() => setIsMobileDrawerOpen(true)}
       />
+
 
       {/* Authentication Modal */}
       <AuthModal

@@ -23,6 +23,12 @@ class CareerRecommendation(BaseModel):
     missingSkills: List[str]
     interestAlignment: int
     explanation: str
+    # Phase 5: Additive Evidence-Aware Attributes
+    evidence_strength: Optional[float] = None
+    evidence_confidence: float = 0.0
+    evidence_sources: List[str] = []
+    evidence_explanation: Optional[str] = None
+    evidence_level: str = "INSUFFICIENT"
 
 class ReadinessBreakdown(BaseModel):
     skillAlignmentPoints: int # Max 450
@@ -38,6 +44,12 @@ class ReadinessResult(BaseModel):
     breakdown: ReadinessBreakdown
     statusMessage: str
     recommendationHint: str
+    # Phase 5: Additive Evidence-Aware Attributes
+    evidence_summary: Optional[str] = None
+    evidence_confidence: float = 0.0
+    evidence_sources: List[str] = []
+    evidence_strength: Optional[float] = None
+    evidence_level: str = "INSUFFICIENT"
 
 class SkillGapItem(BaseModel):
     skill: str
@@ -48,6 +60,13 @@ class SkillGapItem(BaseModel):
     priority: Literal["Strong", "Developing", "Gap"]
     status: Literal["Mastered", "In Progress", "Not Started"]
     recommendation: str
+    # Phase 5A: Additive Evidence-Aware Attributes
+    evidence_strength: Optional[float] = None
+    evidence_confidence: float = 0.0
+    evidence_status: str = "NOT_AVAILABLE"
+    evidence_sources: List[str] = []
+    evidence_explanation: Optional[str] = None
+    evidence_level: str = "INSUFFICIENT"
 
 class RoadmapResource(BaseModel):
     title: str
@@ -73,6 +92,13 @@ class RoadmapStep(BaseModel):
     practiceProject: PracticeProject
     estimatedTime: str
     skillKey: str
+    # Phase 5: Additive Evidence-Aware Attributes
+    evidence_status: str = "NOT_AVAILABLE"
+    evidence_sources: List[str] = []
+    evidence_confidence: float = 0.0
+    evidence_explanation: Optional[str] = None
+    evidence_level: str = "INSUFFICIENT"
+    evidence_strength: Optional[float] = None
 
 class LearningResource(BaseModel):
     id: str
@@ -100,6 +126,9 @@ class StrongMatchItem(BaseModel):
     studentLevel: int
     requiredLevel: int
     note: str
+    evidence_sources: List[str] = []
+    evidence_strength: Optional[float] = None
+    evidence_status: Optional[str] = None
 
 class NeedsImprovementItem(BaseModel):
     skill: str
@@ -107,6 +136,8 @@ class NeedsImprovementItem(BaseModel):
     requiredLevel: int
     gap: int
     priority: Literal["High", "Medium", "Low"]
+    evidence_sources: List[str] = []
+    evidence_status: Optional[str] = None
 
 class BenchmarkComparisonItem(BaseModel):
     skill: str
@@ -121,4 +152,10 @@ class CareerMatch(BaseModel):
     strongMatches: List[StrongMatchItem]
     needsImprovement: List[NeedsImprovementItem]
     benchmarkComparison: List[BenchmarkComparisonItem]
+    # Phase 5: Additive Evidence-Aware Attributes
+    evidence_strength: Optional[float] = None
+    evidence_confidence: float = 0.0
+    evidence_sources: List[str] = []
+    evidence_explanation: Optional[str] = None
+    evidence_level: str = "INSUFFICIENT"
 

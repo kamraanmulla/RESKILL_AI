@@ -15,6 +15,7 @@ import { SectionHeader } from '../components/common/SectionHeader';
 import { Modal } from '../components/common/Modal';
 import { JobOpportunity } from '../types';
 import { api } from '../services/api';
+import { openExternalUrl } from '../services/externalLink';
 
 interface JobsPageProps {
   jobs: JobOpportunity[];
@@ -42,17 +43,8 @@ export const JobsPage: React.FC<JobsPageProps> = ({
 
     setAppliedJobs((prev) => ({ ...prev, [job.id]: true }));
     if (job.sourceUrl) {
-      try {
-        const parsed = new URL(job.sourceUrl);
-        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
-          api.recordJobApplyClick(job.id).catch(() => {});
-          window.open(job.sourceUrl, '_blank', 'noopener,noreferrer');
-        } else {
-          console.warn('Blocked non-http(s) job URL:', job.sourceUrl);
-        }
-      } catch (err) {
-        console.warn('Malformed job URL:', job.sourceUrl);
-      }
+      api.recordJobApplyClick(job.id).catch(() => {});
+      openExternalUrl(job.sourceUrl);
     }
   };
 

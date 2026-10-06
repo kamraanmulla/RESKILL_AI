@@ -57,3 +57,48 @@ def get_advanced_intelligence_summary(target_career_id: Optional[str] = None):
         "obsolescence": obsolescence_engine.analyze_skill_trends(profile),
         "profileState": profile.profileState
     }
+
+
+from ...services.skill_evidence_service import (
+    skill_evidence_service,
+    SkillEvidenceProfileResponse,
+    SkillEvidenceItem
+)
+
+@router.get("/skill-evidence", response_model=SkillEvidenceProfileResponse)
+def get_skill_evidence_profile(skills: Optional[str] = Query(None, description="Comma-separated skill names")):
+    """
+    Evaluates real user evidence (Resume, Assessment, Projects, Experience)
+    via Phase 3 ML evidence model for the authenticated candidate.
+    """
+    profile = get_profile()
+    skills_list = [s.strip() for s in skills.split(",")] if skills else None
+    return skill_evidence_service.evaluate_profile_evidence(profile, skills_list)
+
+@router.get("/skill-evidence/{skill_name}", response_model=SkillEvidenceItem)
+def get_single_skill_evidence(skill_name: str):
+    """
+    Evaluates real user evidence for a single targeted skill
+    for the authenticated candidate.
+    """
+    profile = get_profile()
+    return skill_evidence_service.evaluate_skill_evidence(profile, skill_name)
+
+
+from ...schemas.intelligence import ReadinessResult, RoadmapStep
+from ...intelligence.readiness_engine import ReadinessEngine
+from ...intelligence.roadmap_engine import RoadmapEngine
+
+@router.get("/readiness", response_model=ReadinessResult)
+def get_readiness(target_career_id: Optional[str] = Query(None, description="Optional target career ID")):
+    """Calculates deterministic career readiness enriched with multi-channel evidence."""
+    profile = get_profile()
+    return ReadinessEngine.calculate_readiness(profile, target_career_id)
+
+@router.get("/roadmap", response_model=List[RoadmapStep])
+def get_roadmap(target_career_id: Optional[str] = Query(None, description="Optional target career ID")):
+    """Generates personalized milestone roadmap enriched with multi-channel evidence verification."""
+    profile = get_profile()
+    cid = target_career_id or profile.targetCareerId or "career_fullstack"
+    return RoadmapEngine.generate_roadmap(profile, cid)
+

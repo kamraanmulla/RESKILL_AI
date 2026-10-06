@@ -207,7 +207,11 @@ export interface StudentProfile {
   careerReadiness?: number;
   readinessTier?: string;
   isDemo?: boolean;
+  predictedCareerCategory?: string | null;
+  predictedCareerConfidence?: number | null;
+  topCareerPredictions?: Array<{ rank: number; category: string; confidence: number }>;
 }
+
 
 export interface MinimalOnboardingRequest {
   name?: string;
@@ -259,6 +263,11 @@ export interface CareerMatch {
     benchmarkLevel: number;
     category: string;
   }>;
+  evidence_strength?: number | null;
+  evidence_confidence?: number;
+  evidence_sources?: string[];
+  evidence_explanation?: string | null;
+  evidence_level?: 'STRONG' | 'MODERATE' | 'WEAK' | 'INSUFFICIENT';
 }
 
 export interface CareerRecommendation {
@@ -269,6 +278,11 @@ export interface CareerRecommendation {
   missingSkills: string[];
   interestAlignment: number;
   explanation: string;
+  evidence_strength?: number | null;
+  evidence_confidence?: number;
+  evidence_sources?: string[];
+  evidence_explanation?: string | null;
+  evidence_level?: 'STRONG' | 'MODERATE' | 'WEAK' | 'INSUFFICIENT';
 }
 
 export interface ReadinessBreakdown {
@@ -286,6 +300,11 @@ export interface ReadinessResult {
   breakdown: ReadinessBreakdown;
   statusMessage: string;
   recommendationHint: string;
+  evidence_summary?: string | null;
+  evidence_confidence?: number;
+  evidence_sources?: string[];
+  evidence_strength?: number | null;
+  evidence_level?: 'STRONG' | 'MODERATE' | 'WEAK' | 'INSUFFICIENT';
 }
 
 export interface SkillGapItem {
@@ -297,6 +316,12 @@ export interface SkillGapItem {
   priority: 'Strong' | 'Developing' | 'Gap' | 'High' | 'Medium' | 'Low';
   status: 'Mastered' | 'In Progress' | 'Not Started';
   recommendation: string;
+  evidence_strength?: number | null;
+  evidence_confidence?: number;
+  evidence_status?: string;
+  evidence_sources?: string[];
+  evidence_explanation?: string | null;
+  evidence_level?: 'STRONG' | 'MODERATE' | 'WEAK' | 'INSUFFICIENT';
 }
 
 export interface RoadmapResource {
@@ -323,6 +348,12 @@ export interface RoadmapStep {
   };
   estimatedTime: string;
   skillKey: string;
+  evidence_status?: string;
+  evidence_sources?: string[];
+  evidence_confidence?: number;
+  evidence_explanation?: string | null;
+  evidence_level?: 'STRONG' | 'MODERATE' | 'WEAK' | 'INSUFFICIENT';
+  evidence_strength?: number | null;
 }
 
 export interface LearningResource {

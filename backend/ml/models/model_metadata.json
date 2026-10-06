@@ -1,0 +1,147 @@
+{
+  "model_name": "ReSkillAI Resume Career Category Classifier",
+  "winning_model_type": "Model B (TF-IDF + LinearSVC)",
+  "model_file": "resume_career_classifier.joblib",
+  "training_dataset": "Kaggle Resume Dataset (Resume.csv)",
+  "total_records": 2482,
+  "train_samples": 1737,
+  "validation_samples": 372,
+  "test_samples": 373,
+  "number_of_classes": 24,
+  "classes": [
+    "ACCOUNTANT",
+    "ADVOCATE",
+    "AGRICULTURE",
+    "APPAREL",
+    "ARTS",
+    "AUTOMOBILE",
+    "AVIATION",
+    "BANKING",
+    "BPO",
+    "BUSINESS-DEVELOPMENT",
+    "CHEF",
+    "CONSTRUCTION",
+    "CONSULTANT",
+    "DESIGNER",
+    "DIGITAL-MEDIA",
+    "ENGINEERING",
+    "FINANCE",
+    "FITNESS",
+    "HEALTHCARE",
+    "HR",
+    "INFORMATION-TECHNOLOGY",
+    "PUBLIC-RELATIONS",
+    "SALES",
+    "TEACHER"
+  ],
+  "random_state": 42,
+  "test_metrics": {
+    "accuracy": 0.6890080428954424,
+    "macro_precision": 0.6818378629916143,
+    "macro_recall": 0.6436887254901961,
+    "macro_f1": 0.6375404556298526,
+    "weighted_precision": 0.6941339819193622,
+    "weighted_recall": 0.6890080428954424,
+    "weighted_f1": 0.6733496803017601
+  },
+  "cross_validation_metrics": {
+    "mean_accuracy": 0.663796415913081,
+    "std_accuracy": 0.018620726790285345,
+    "mean_macro_f1": 0.6071599716452749,
+    "std_macro_f1": 0.017667967801601063,
+    "mean_weighted_f1": 0.651351075280332,
+    "std_weighted_f1": 0.019640846994299573
+  },
+  "baseline_metrics": {
+    "accuracy": 0.04825737265415549,
+    "macro_precision": 0.0020107238605898124,
+    "macro_recall": 0.041666666666666664,
+    "macro_f1": 0.0038363171355498722,
+    "weighted_f1": 0.004443134055114061
+  },
+  "model_comparison": {
+    "majority_baseline": {
+      "accuracy": 0.04825737265415549,
+      "macro_precision": 0.0020107238605898124,
+      "macro_recall": 0.041666666666666664,
+      "macro_f1": 0.0038363171355498722,
+      "weighted_f1": 0.004443134055114061
+    },
+    "model_a_logistic_regression": {
+      "accuracy": 0.6568364611260054,
+      "macro_precision": 0.671663059075185,
+      "macro_recall": 0.613145813881108,
+      "macro_f1": 0.6005021298996045,
+      "weighted_precision": 0.6855142470022796,
+      "weighted_recall": 0.6568364611260054,
+      "weighted_f1": 0.6349314513143189
+    },
+    "model_b_linearsvc": {
+      "accuracy": 0.6890080428954424,
+      "macro_precision": 0.6818378629916143,
+      "macro_recall": 0.6436887254901961,
+      "macro_f1": 0.6375404556298526,
+      "weighted_precision": 0.6941339819193622,
+      "weighted_recall": 0.6890080428954424,
+      "weighted_f1": 0.6733496803017601
+    }
+  },
+  "quality_gate": "WEAK",
+  "model_status": "MODEL STATUS: WEAK \u2014 NEEDS IMPROVEMENT",
+  "top_confusion_pairs": [
+    [
+      "FINANCE -> ACCOUNTANT",
+      5
+    ],
+    [
+      "CONSULTANT -> INFORMATION-TECHNOLOGY",
+      5
+    ],
+    [
+      "CONSULTANT -> BUSINESS-DEVELOPMENT",
+      5
+    ],
+    [
+      "SALES -> APPAREL",
+      3
+    ],
+    [
+      "ADVOCATE -> HEALTHCARE",
+      3
+    ],
+    [
+      "FITNESS -> SALES",
+      3
+    ],
+    [
+      "APPAREL -> HR",
+      2
+    ],
+    [
+      "DIGITAL-MEDIA -> INFORMATION-TECHNOLOGY",
+      2
+    ],
+    [
+      "ARTS -> FITNESS",
+      2
+    ],
+    [
+      "AUTOMOBILE -> BANKING",
+      2
+    ]
+  ],
+  "test_errors_count": 116,
+  "minority_classes_in_test": {
+    "AUTOMOBILE": 5,
+    "BPO": 3
+  },
+  "environment": {
+    "sklearn_version": "1.9.0",
+    "joblib_version": "1.5.3",
+    "pandas_version": "3.0.3",
+    "numpy_version": "2.4.6",
+    "python_version": "3.14.0",
+    "training_timestamp": "2026-10-06T16:26:12.773407Z"
+  },
+  "disclaimer": "This model predicts high-level career categories for resumes. It does NOT predict individual candidate skill proficiency scores."
+}

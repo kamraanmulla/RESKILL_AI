@@ -318,14 +318,57 @@ class RoadmapEngine:
                 None
             )
 
+            # Phase 5: Evidence-aware verification of step status
+            step_ev_status = "NOT_AVAILABLE"
+            step_ev_sources = []
+            step_ev_conf = 0.0
+            step_ev_expl = None
+            step_ev_level = "INSUFFICIENT"
+            step_ev_strength = None
+
+            if gap_item and gap_item.evidence_status:
+                step_ev_status = gap_item.evidence_status
+                step_ev_sources = gap_item.evidence_sources
+                step_ev_conf = gap_item.evidence_confidence
+                step_ev_expl = gap_item.evidence_explanation
+                step_ev_level = gap_item.evidence_level
+                step_ev_strength = gap_item.evidence_strength
+            else:
+                try:
+                    from ..services.skill_evidence_service import skill_evidence_service
+                    if skill_evidence_service:
+                        ev_item = skill_evidence_service.evaluate_skill_evidence(profile, skill_key)
+                        step_ev_status = ev_item.status
+                        step_ev_sources = ev_item.evidence_sources
+                        step_ev_conf = ev_item.confidence
+                        step_ev_expl = ev_item.explanation
+                        step_ev_strength = ev_item.evidence_strength
+                        if ev_item.status == "SUPPORTED":
+                            step_ev_level = "STRONG"
+                        elif ev_item.status == "MODERATE_EVIDENCE":
+                            step_ev_level = "MODERATE"
+                        elif ev_item.status == "WEAK_EVIDENCE":
+                            step_ev_level = "WEAK"
+                        else:
+                            step_ev_level = "INSUFFICIENT"
+                except Exception:
+                    pass
+
+            # Determine status with verification guard:
+            # An unverified claim (INSUFFICIENT/UNSUPPORTED evidence) should NOT be skipped as completed.
+            has_strong_or_mod_evidence = step_ev_level in ["STRONG", "MODERATE"]
+
             if gap_item:
-                if gap_item.status == "Mastered" or (user_skill and user_skill.proficiency >= 75):
+                if gap_item.status == "Mastered" and has_strong_or_mod_evidence:
                     status = "completed"
+                elif gap_item.status == "Mastered" and not has_strong_or_mod_evidence:
+                    # Claimed mastered but missing empirical evidence: keep active for practice validation
+                    status = "in_progress"
                 elif gap_item.status == "In Progress" or (user_skill and user_skill.proficiency >= 50):
                     status = "in_progress"
                 else:
                     status = "upcoming"
-            elif user_skill and user_skill.proficiency >= 75:
+            elif user_skill and user_skill.proficiency >= 75 and has_strong_or_mod_evidence:
                 status = "completed"
             elif user_skill and user_skill.proficiency >= 50:
                 status = "in_progress"
@@ -373,7 +416,13 @@ class RoadmapEngine:
                         deliverable="Production-ready GitHub repository with README and tests."
                     ),
                     estimatedTime=est_time,
-                    skillKey=skill_key
+                    skillKey=skill_key,
+                    evidence_status=step_ev_status,
+                    evidence_sources=step_ev_sources,
+                    evidence_confidence=step_ev_conf,
+                    evidence_explanation=step_ev_expl,
+                    evidence_level=step_ev_level,
+                    evidence_strength=step_ev_strength
                 )
             )
 

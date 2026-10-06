@@ -15,13 +15,16 @@ import { api } from '../services/api';
 interface LoginPageProps {
   onLoginSuccess: (user: AuthUser) => void;
   onExploreLanding: () => void;
+  initialMode?: 'signin' | 'signup';
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({
   onLoginSuccess,
-  onExploreLanding
+  onExploreLanding,
+  initialMode = 'signin'
 }) => {
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');

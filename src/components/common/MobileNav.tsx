@@ -32,10 +32,12 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   onOpenDrawer
 }) => {
   const bottomItems = [
-    { id: 'dashboard' as NavItemId, label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'match' as NavItemId, label: 'Match', icon: Target },
+    { id: 'dashboard' as NavItemId, label: 'Home', icon: LayoutDashboard },
+    { id: 'match' as NavItemId, label: 'Assess', icon: Target },
     { id: 'roadmap' as NavItemId, label: 'Roadmap', icon: Milestone },
-    { id: 'jobs' as NavItemId, label: 'Jobs', icon: Briefcase }
+    { id: 'learning' as NavItemId, label: 'Learn', icon: BookOpen },
+    { id: 'jobs' as NavItemId, label: 'Jobs', icon: Briefcase },
+    { id: 'profile' as NavItemId, label: 'Profile', icon: User }
   ];
 
   const drawerItems = [
@@ -43,7 +45,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     { id: 'resume' as NavItemId, label: 'My Resume', icon: FileText },
     { id: 'profile' as NavItemId, label: 'Student Profile', icon: User },
     { id: 'careers' as NavItemId, label: 'Career Selection', icon: Compass },
-    { id: 'match' as NavItemId, label: 'Career Match Analysis', icon: Target },
+    { id: 'match' as NavItemId, label: 'Career Match & Assess', icon: Target },
     { id: 'skill-gap' as NavItemId, label: 'Skill Gap Breakdown', icon: BarChart3 },
     { id: 'roadmap' as NavItemId, label: 'Learning Roadmap', icon: Milestone },
     { id: 'learning' as NavItemId, label: 'Curated Learning', icon: BookOpen },
@@ -55,7 +57,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   return (
     <>
       {/* Bottom bar for mobile screens */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-paper-border z-40 flex items-center justify-around px-2 shadow-card">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-paper-border z-40 flex items-center justify-around px-1 shadow-card pb-safe pt-1">
         {bottomItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentTab === item.id;
@@ -63,24 +65,15 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             <button
               key={item.id}
               onClick={() => onSelectTab(item.id)}
-              className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+              className={`flex flex-col items-center justify-center flex-1 py-1 px-0.5 transition-colors touch-manipulation ${
                 isActive ? 'text-forest-800 font-semibold' : 'text-charcoal-500 hover:text-charcoal-900'
               }`}
             >
-              <Icon className="w-4 h-4 mb-1" />
-              <span className="text-[10px] font-sans leading-none">{item.label}</span>
+              <Icon className={`w-4 h-4 mb-1 ${isActive ? 'text-forest-800 stroke-[2.2]' : 'text-charcoal-500'}`} />
+              <span className="text-[10px] font-sans leading-none tracking-tight">{item.label}</span>
             </button>
           );
         })}
-
-        {/* More/Menu button */}
-        <button
-          onClick={onOpenDrawer}
-          className="flex flex-col items-center justify-center flex-1 py-1 text-charcoal-500 hover:text-charcoal-900 transition-colors"
-        >
-          <Layers className="w-4 h-4 mb-1" />
-          <span className="text-[10px] font-sans leading-none">All Pages</span>
-        </button>
       </nav>
 
       {/* Mobile Menu Drawer Overlay */}

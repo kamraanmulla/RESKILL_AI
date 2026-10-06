@@ -56,3 +56,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   outline: 2px solid #163626;
   outline-offset: 1px;
 }
+
+/* Mobile viewport & safe area utilities */
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+* {
+  -webkit-tap-highlight-color: transparent;
+}

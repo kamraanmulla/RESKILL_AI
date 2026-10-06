@@ -12,6 +12,7 @@ import {
 import { SectionHeader } from '../components/common/SectionHeader';
 import { Modal } from '../components/common/Modal';
 import { RoadmapStep, CareerRole } from '../types';
+import { openExternalUrl } from '../services/externalLink';
 
 interface RoadmapPageProps {
   roadmap: RoadmapStep[];
@@ -282,12 +283,11 @@ export const RoadmapPage: React.FC<RoadmapPageProps> = ({
 
               <div className="space-y-2">
                 {selectedStep.recommendedResources.map((res, i) => (
-                  <a
+                  <button
                     key={i}
-                    href={res.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="p-2.5 bg-paper-muted hover:bg-paper-dark rounded-sm border border-paper-border flex items-center justify-between transition-colors block text-xs"
+                    type="button"
+                    onClick={() => openExternalUrl(res.url)}
+                    className="w-full p-2.5 bg-paper-muted hover:bg-paper-dark rounded-sm border border-paper-border flex items-center justify-between transition-colors text-left text-xs cursor-pointer"
                   >
                     <div>
                       <div className="font-medium text-charcoal-900">{res.title}</div>
@@ -295,8 +295,8 @@ export const RoadmapPage: React.FC<RoadmapPageProps> = ({
                         {res.platform} • {res.duration} • {res.type}
                       </div>
                     </div>
-                    <ExternalLink className="w-3.5 h-3.5 text-charcoal-400" />
-                  </a>
+                    <ExternalLink className="w-3.5 h-3.5 text-charcoal-400 shrink-0 ml-2" />
+                  </button>
                 ))}
               </div>
             </div>

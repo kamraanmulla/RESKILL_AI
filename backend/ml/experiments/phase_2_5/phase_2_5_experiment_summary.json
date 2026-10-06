@@ -1,0 +1,211 @@
+{
+  "model_name": "ReSkillAI Resume Career Category Classifier (Phase 2.5 v2)",
+  "model_type": "Exp 3: Word + Char_wb TF-IDF + LinearSVC",
+  "model_file": "resume_career_classifier_v2.joblib",
+  "baseline_model_file": "resume_career_classifier.joblib",
+  "dataset": "Kaggle Resume Dataset (Resume.csv, deduplicated)",
+  "total_records": 2482,
+  "train_samples": 1737,
+  "validation_samples": 372,
+  "test_samples": 373,
+  "number_of_classes": 24,
+  "classes": [
+    "ACCOUNTANT",
+    "ADVOCATE",
+    "AGRICULTURE",
+    "APPAREL",
+    "ARTS",
+    "AUTOMOBILE",
+    "AVIATION",
+    "BANKING",
+    "BPO",
+    "BUSINESS-DEVELOPMENT",
+    "CHEF",
+    "CONSTRUCTION",
+    "CONSULTANT",
+    "DESIGNER",
+    "DIGITAL-MEDIA",
+    "ENGINEERING",
+    "FINANCE",
+    "FITNESS",
+    "HEALTHCARE",
+    "HR",
+    "INFORMATION-TECHNOLOGY",
+    "PUBLIC-RELATIONS",
+    "SALES",
+    "TEACHER"
+  ],
+  "random_state": 42,
+  "test_metrics_v2": {
+    "name": "Exp 3: Word + Char_wb TF-IDF + LinearSVC",
+    "test_accuracy": 0.7131367292225201,
+    "test_macro_precision": 0.7207547682120886,
+    "test_macro_recall": 0.6729254201680672,
+    "test_macro_f1": 0.6695968676493095,
+    "test_weighted_precision": 0.7352174413172984,
+    "test_weighted_recall": 0.7131367292225201,
+    "test_weighted_f1": 0.6998013000380139,
+    "cv_macro_f1": 0.6324749474821422,
+    "cv_macro_f1_std": 0.010979146278565126,
+    "cv_accuracy": 0.6885388717744874
+  },
+  "calibrated_test_metrics_v2": {
+    "accuracy": 0.7078,
+    "macro_f1": 0.6681,
+    "weighted_f1": 0.6986,
+    "macro_precision": 0.6998,
+    "macro_recall": 0.6687
+  },
+  "baseline_metrics_phase2": {
+    "accuracy": 0.689,
+    "macro_f1": 0.6375,
+    "weighted_f1": 0.6733,
+    "cv_macro_f1": 0.6072,
+    "cv_macro_f1_std": 0.0177
+  },
+  "absolute_improvement": {
+    "delta_macro_f1": 0.0321,
+    "delta_accuracy": 0.0241,
+    "delta_weighted_f1": 0.0265,
+    "significance": "Meaningful Improvement"
+  },
+  "model_status": "MODEL STATUS: IMPROVED \u2014 ACCEPTABLE BASELINE",
+  "quality_gate": "ACCEPTABLE BASELINE",
+  "cross_validation_metrics_v2": {
+    "mean_macro_f1": 0.6325,
+    "std_macro_f1": 0.011,
+    "mean_accuracy": 0.6885
+  },
+  "all_experiments_evaluated": [
+    {
+      "name": "Exp 1: Tuned TF-IDF + Logistic Regression",
+      "test_accuracy": 0.6675603217158177,
+      "test_macro_precision": 0.6845791366623154,
+      "test_macro_recall": 0.6251828509181451,
+      "test_macro_f1": 0.6132873627429769,
+      "test_weighted_precision": 0.6983305422257994,
+      "test_weighted_recall": 0.6675603217158177,
+      "test_weighted_f1": 0.646571891482702,
+      "cv_macro_f1": 0.5794222773123182,
+      "cv_macro_f1_std": 0.018155153115739144,
+      "cv_accuracy": 0.6373165722614197
+    },
+    {
+      "name": "Exp 2: Tuned TF-IDF (1,2, C=2.0) + LinearSVC",
+      "test_accuracy": 0.7050938337801609,
+      "test_macro_precision": 0.6989480651133464,
+      "test_macro_recall": 0.6650837418300654,
+      "test_macro_f1": 0.6568756688128473,
+      "test_weighted_precision": 0.7151791837499071,
+      "test_weighted_recall": 0.7050938337801609,
+      "test_weighted_f1": 0.6876460252919817,
+      "cv_macro_f1": 0.6173763618486404,
+      "cv_macro_f1_std": 0.007974467569234488,
+      "cv_accuracy": 0.677602769220577
+    },
+    {
+      "name": "Exp 3: Word + Char_wb TF-IDF + LinearSVC",
+      "test_accuracy": 0.7131367292225201,
+      "test_macro_precision": 0.7207547682120886,
+      "test_macro_recall": 0.6729254201680672,
+      "test_macro_f1": 0.6695968676493095,
+      "test_weighted_precision": 0.7352174413172984,
+      "test_weighted_recall": 0.7131367292225201,
+      "test_weighted_f1": 0.6998013000380139,
+      "cv_macro_f1": 0.6324749474821422,
+      "cv_macro_f1_std": 0.010979146278565126,
+      "cv_accuracy": 0.6885388717744874
+    },
+    {
+      "name": "Exp 4: TF-IDF + Structured Features + LinearSVC",
+      "test_accuracy": 0.707774798927614,
+      "test_macro_precision": 0.6953956884782589,
+      "test_macro_recall": 0.658994708994709,
+      "test_macro_f1": 0.6537213398901017,
+      "test_weighted_precision": 0.7113394173264971,
+      "test_weighted_recall": 0.707774798927614,
+      "test_weighted_f1": 0.6937179556076799,
+      "cv_macro_f1": 0.6187711117925525,
+      "cv_macro_f1_std": 0.009713237874137148,
+      "cv_accuracy": 0.6701182549935407
+    },
+    {
+      "name": "Exp 5: TF-IDF + Structured Features + Logistic Regression",
+      "test_accuracy": 0.5951742627345844,
+      "test_macro_precision": 0.6059078358933235,
+      "test_macro_recall": 0.5610255213196389,
+      "test_macro_f1": 0.5560390140041184,
+      "test_weighted_precision": 0.622724642676294,
+      "test_weighted_recall": 0.5951742627345844,
+      "test_weighted_f1": 0.5830249544759509,
+      "cv_macro_f1": 0.5082166478641534,
+      "cv_macro_f1_std": 0.027089259893303273,
+      "cv_accuracy": 0.5520851965947862
+    },
+    {
+      "name": "Exp 6: Tuned TF-IDF + SGDClassifier",
+      "test_accuracy": 0.707774798927614,
+      "test_macro_precision": 0.6698639214099741,
+      "test_macro_recall": 0.6517482687519451,
+      "test_macro_f1": 0.6376790571460922,
+      "test_weighted_precision": 0.7103605606096083,
+      "test_weighted_recall": 0.707774798927614,
+      "test_weighted_f1": 0.6874686535409783,
+      "cv_macro_f1": 0.6033357235166815,
+      "cv_macro_f1_std": 0.012841461524082868,
+      "cv_accuracy": 0.6701165987611382
+    }
+  ],
+  "top_confusion_pairs": [
+    [
+      "FINANCE -> ACCOUNTANT",
+      8
+    ],
+    [
+      "CONSULTANT -> INFORMATION-TECHNOLOGY",
+      4
+    ],
+    [
+      "DIGITAL-MEDIA -> INFORMATION-TECHNOLOGY",
+      3
+    ],
+    [
+      "SALES -> APPAREL",
+      3
+    ],
+    [
+      "CONSULTANT -> PUBLIC-RELATIONS",
+      3
+    ],
+    [
+      "FITNESS -> SALES",
+      3
+    ],
+    [
+      "APPAREL -> HR",
+      2
+    ],
+    [
+      "ARTS -> PUBLIC-RELATIONS",
+      2
+    ],
+    [
+      "CONSULTANT -> SALES",
+      2
+    ],
+    [
+      "ARTS -> FITNESS",
+      2
+    ]
+  ],
+  "total_test_errors": 107,
+  "environment": {
+    "sklearn_version": "1.9.0",
+    "joblib_version": "1.5.3",
+    "pandas_version": "3.0.3",
+    "numpy_version": "2.4.6",
+    "python_version": "3.14.0",
+    "timestamp": "2026-10-06T17:10:39.936878Z"
+  },
+  "disclaimer": "Predicts high-level career category from resume free text. Does NOT predict individual skill proficiency."
+}

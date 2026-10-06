@@ -40,10 +40,27 @@ import {
   createBlankCareerMatch,
   createBlankSkillGaps
 } from '../data/mockData';
+import { Capacitor } from '@capacitor/core';
 
-const API_BASE = (typeof window !== 'undefined' && window.location.port === '5173')
-  ? '/api'
-  : (import.meta.env.VITE_API_BASE || 'http://localhost:8000/api');
+export const NETWORK_ERROR_MSG = 'Unable to connect to ReSkillAI. Please check your internet connection and try again.';
+
+export function resolveApiBaseUrl(): string {
+  const envUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_BASE;
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, '');
+  }
+  if (typeof window !== 'undefined' && window.location.port === '5173') {
+    return '/api';
+  }
+  if (Capacitor.isNativePlatform()) {
+    // In Android emulator, 10.0.2.2 maps to the development host computer.
+    // On physical mobile devices, set VITE_API_BASE_URL to host LAN IP (e.g. http://192.168.x.x:8000/api)
+    return 'http://10.0.2.2:8000/api';
+  }
+  return 'http://localhost:8000/api';
+}
+
+export const API_BASE = resolveApiBaseUrl();
 const AUTH_STORAGE_KEY = 'reskill_auth_user';
 const PROFILE_STORAGE_KEY = 'reskill_student_profile';
 
@@ -85,9 +102,9 @@ let currentCareers: CareerRole[] = mockCareers.map(c => ({
   currentMatchPercentage: isProfilePersonalized(currentStudent) ? c.currentMatchPercentage : 0
 }));
 
-let currentRoadmap: RoadmapStep[] = isProfilePersonalized(currentStudent)
+let currentRoadmap: RoadmapStep[] = (currentStudent.isDemo && isProfilePersonalized(currentStudent))
   ? [...mockRoadmap]
-  : mockRoadmap.map(step => ({ ...step, status: 'upcoming' as const }));
+  : [];
 
 let currentResources: LearningResource[] = [...mockLearningResources];
 let currentJobs: JobOpportunity[] = mockJobs.map(j => ({
@@ -95,13 +112,13 @@ let currentJobs: JobOpportunity[] = mockJobs.map(j => ({
   matchPercentage: isProfilePersonalized(currentStudent) ? j.matchPercentage : 0,
   isDemoSample: !isProfilePersonalized(currentStudent)
 }));
-let currentSkillGaps: SkillGapItem[] = isProfilePersonalized(currentStudent)
+let currentSkillGaps: SkillGapItem[] = (currentStudent.isDemo && isProfilePersonalized(currentStudent))
   ? [...mockSkillGaps]
   : createBlankSkillGaps();
-let currentProgress: ProgressStats = isProfilePersonalized(currentStudent)
+let currentProgress: ProgressStats = (currentStudent.isDemo && isProfilePersonalized(currentStudent))
   ? { ...mockProgressStats }
   : createBlankProgressStats();
-let currentCareerMatch: CareerMatch = isProfilePersonalized(currentStudent)
+let currentCareerMatch: CareerMatch = (currentStudent.isDemo && isProfilePersonalized(currentStudent))
   ? { ...mockCareerMatch }
   : createBlankCareerMatch();
 
@@ -161,19 +178,18 @@ export const api = {
 
     // Client fallback - strictly isolate demo to exact demo accounts
     const isDemo = email === 'parvez.ahmed@apex.edu.in' || email === 'demo@reskill.ai';
+    if (!isDemo) {
+      throw new Error(NETWORK_ERROR_MSG);
+    }
     const user: AuthUser = {
       id: `usr_${Math.random().toString(36).substring(2, 9)}`,
-      name: isDemo ? 'Parvez Ahmed' : email.split('@')[0],
+      name: 'Parvez Ahmed',
       email,
       academicLevel: 'College Student',
-      isDemo
+      isDemo: true
     };
     currentUser = user;
-    if (isDemo) {
-      currentStudent = { ...mockStudent, isDemo: true };
-    } else {
-      currentStudent = createBlankStudentProfile(user);
-    }
+    currentStudent = { ...mockStudent, isDemo: true };
     saveStateLocally();
     return user;
   },
@@ -191,22 +207,7 @@ export const api = {
       return res.user;
     }
 
-    // Client fallback
-    const user: AuthUser = {
-      id: `usr_${Math.random().toString(36).substring(2, 9)}`,
-      name,
-      email,
-      academicLevel: academicLevel || 'College Student',
-      isDemo: false
-    };
-    currentUser = user;
-    currentStudent = {
-      ...createBlankStudentProfile(user),
-      name,
-      email
-    };
-    saveStateLocally();
-    return user;
+    throw new Error(NETWORK_ERROR_MSG);
   },
 
   async loginGuest(): Promise<AuthUser> {
@@ -225,14 +226,45 @@ export const api = {
   },
 
   async logout(): Promise<void> {
+    try {
+      await request('/auth/logout', { method: 'POST' });
+    } catch {
+      // Offline fallback
+    }
     currentUser = null;
     currentStudent = createBlankStudentProfile();
+    currentRoadmap = [];
+    currentSkillGaps = createBlankSkillGaps();
+    currentProgress = createBlankProgressStats();
+    currentCareerMatch = createBlankCareerMatch();
     saveStateLocally();
   },
 
   getCurrentUser(): AuthUser | null {
     return currentUser;
   },
+
+  async validateSession(): Promise<AuthUser | null> {
+    if (!currentUser) return null;
+    try {
+      const res = await request<{ authenticated: boolean; user: AuthUser | null; profile: StudentProfile | null }>('/auth/me');
+      if (res && res.authenticated && res.user) {
+        currentUser = res.user;
+        if (res.profile) {
+          currentStudent = res.profile;
+        }
+        saveStateLocally();
+        return currentUser;
+      } else if (res && !res.authenticated) {
+        await this.logout();
+        return null;
+      }
+    } catch {
+      // Network fallback
+    }
+    return currentUser;
+  },
+
 
   // Reset & Demo Profiles
   async resetToZeroKnowledge(): Promise<StudentProfile> {
@@ -512,26 +544,27 @@ export const api = {
 
   // Readiness Metrics
   async getReadiness(): Promise<ReadinessResult | null> {
-    const res = await request<ProgressStats>('/progress');
+    const res = await request<any>('/progress');
     if (res) {
-      // Return synthetic readiness result
+      const breakdown = res.readinessBreakdown || {
+        skillAlignmentPoints: Math.round(res.careerReadiness * 4),
+        practicalExperiencePoints: Math.round(res.careerReadiness * 3),
+        assessmentPoints: Math.round(res.careerReadiness * 1.5),
+        educationPoints: Math.round(res.careerReadiness * 1.5),
+        totalPoints: res.readinessPoints || Math.round(res.careerReadiness * 10)
+      };
       return {
         readinessScore: res.careerReadiness,
-        readinessPoints: Math.round(res.careerReadiness * 10),
-        readinessLevel: res.careerReadiness > 80 ? 'Industry Ready' : res.careerReadiness > 60 ? 'Proficient' : res.careerReadiness > 40 ? 'Developing' : 'Early Foundation',
-        breakdown: {
-          skillAlignmentPoints: Math.round(res.careerReadiness * 4.5),
-          practicalExperiencePoints: Math.round(res.careerReadiness * 2.5),
-          assessmentPoints: 120,
-          educationPoints: 120,
-          totalPoints: Math.round(res.careerReadiness * 10)
-        },
+        readinessPoints: res.readinessPoints || Math.round(res.careerReadiness * 10),
+        readinessLevel: res.readinessLevel || (res.careerReadiness > 80 ? 'Industry Ready' : res.careerReadiness > 60 ? 'Proficient' : res.careerReadiness > 40 ? 'Developing' : 'Early Foundation'),
+        breakdown,
         statusMessage: `Calibrated readiness at ${res.careerReadiness}%`,
-        recommendationHint: 'Complete pending roadmap modules to increase readiness points.'
+        recommendationHint: res.nextRecommendedAction?.action || 'Complete pending roadmap modules to increase readiness points.'
       };
     }
     return null;
   },
+
 
   // Resume Ingestion
   async uploadResume(fileInput: File | { name: string; size: number }): Promise<{
@@ -569,7 +602,7 @@ export const api = {
       } catch (e: any) {
         console.warn('Backend resume upload failed:', e);
         if (e.name === 'TypeError' && (e.message.includes('fetch') || e.message.includes('Failed to fetch') || e.message.includes('NetworkError'))) {
-          throw new Error('Unable to connect to the ReSkillAI backend. Please ensure the backend server is running on port 8000.');
+          throw new Error(NETWORK_ERROR_MSG);
         }
         throw e;
       }
@@ -732,7 +765,7 @@ export const api = {
       throw new Error(err.detail || 'Could not connect to AI Career Coach.');
     } catch (e: any) {
       if (e.name === 'TypeError' && (e.message.includes('fetch') || e.message.includes('Failed to fetch') || e.message.includes('NetworkError'))) {
-        throw new Error('Unable to connect to the ReSkillAI backend. Please ensure the backend server is running on port 8000.');
+        throw new Error(NETWORK_ERROR_MSG);
       }
       throw e;
     }

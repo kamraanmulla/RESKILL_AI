@@ -60,7 +60,10 @@ def get_career_match(career_id: Optional[str] = None):
                     skill=g.skill,
                     studentLevel=g.yourLevel,
                     requiredLevel=g.requiredLevel,
-                    note=g.recommendation
+                    note=g.recommendation,
+                    evidence_sources=g.evidence_sources,
+                    evidence_strength=g.evidence_strength,
+                    evidence_status=g.evidence_status
                 )
             )
         else:
@@ -71,7 +74,9 @@ def get_career_match(career_id: Optional[str] = None):
                     studentLevel=g.yourLevel,
                     requiredLevel=g.requiredLevel,
                     gap=g.gap,
-                    priority=priority_str
+                    priority=priority_str,
+                    evidence_sources=g.evidence_sources,
+                    evidence_status=g.evidence_status
                 )
             )
 
@@ -81,7 +86,12 @@ def get_career_match(career_id: Optional[str] = None):
         overallMatch=overall_match,
         strongMatches=strong_matches,
         needsImprovement=needs_improvement,
-        benchmarkComparison=benchmark_comparison
+        benchmarkComparison=benchmark_comparison,
+        evidence_strength=rec.evidence_strength if rec else None,
+        evidence_confidence=rec.evidence_confidence if rec else 0.0,
+        evidence_sources=rec.evidence_sources if rec else [],
+        evidence_explanation=rec.evidence_explanation if rec else None,
+        evidence_level=rec.evidence_level if rec else "INSUFFICIENT"
     )
 
 @router.post("/select", response_model=StudentProfile)
@@ -106,4 +116,16 @@ def select_career(req: Optional[SelectCareerRequest] = None, career_id: Optional
 
     set_profile(profile)
     return profile
+
+@router.get("/predicted-category")
+def get_predicted_career_category():
+    """Returns the Phase 2.5 ML career category prediction from the candidate's resume."""
+    profile = get_profile()
+    return {
+        "predictedCareerCategory": profile.predictedCareerCategory,
+        "predictedCareerConfidence": profile.predictedCareerConfidence or 0.0,
+        "topCareerPredictions": profile.topCareerPredictions,
+        "model_file": "resume_career_classifier_v2.joblib"
+    }
+
 

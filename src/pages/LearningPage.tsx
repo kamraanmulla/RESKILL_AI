@@ -12,6 +12,7 @@ import {
 import { SectionHeader } from '../components/common/SectionHeader';
 import { Modal } from '../components/common/Modal';
 import { LearningResource } from '../types';
+import { openExternalUrl } from '../services/externalLink';
 
 interface LearningPageProps {
   resources: LearningResource[];
@@ -169,15 +170,14 @@ export const LearningPage: React.FC<LearningPageProps> = ({
                   <span>Watch in Platform</span>
                 </button>
 
-                <a
-                  href={res.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-xs text-charcoal-500 hover:text-charcoal-900 flex items-center gap-1 font-mono hover:underline"
+                <button
+                  type="button"
+                  onClick={() => openExternalUrl(res.url)}
+                  className="text-xs text-charcoal-500 hover:text-charcoal-900 flex items-center gap-1 font-mono hover:underline cursor-pointer"
                 >
                   <span>Open External</span>
                   <ExternalLink className="w-3 h-3" />
-                </a>
+                </button>
               </div>
             </div>
           );
@@ -225,15 +225,14 @@ export const LearningPage: React.FC<LearningPageProps> = ({
               </p>
               <div className="pt-2 flex justify-between items-center text-[11px] font-mono">
                 <span className="text-charcoal-500">Skill Tag: {activePlayerResource.skillTag}</span>
-                <a
-                  href={activePlayerResource.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-forest-800 hover:underline flex items-center gap-1"
+                <button
+                  type="button"
+                  onClick={() => openExternalUrl(activePlayerResource.url)}
+                  className="text-forest-800 hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <span>Open on {activePlayerResource.platform}</span>
                   <ExternalLink className="w-3 h-3" />
-                </a>
+                </button>
               </div>
             </div>
           </div>

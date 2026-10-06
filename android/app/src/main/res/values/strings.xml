@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ReSkillAI</string>
+    <string name="title_activity_main">ReSkillAI</string>
+    <string name="package_name">com.reskillai.app</string>
+    <string name="custom_url_scheme">com.reskillai.app</string>
+</resources>

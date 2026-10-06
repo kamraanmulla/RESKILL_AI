@@ -86,7 +86,13 @@ class StudentProfile(BaseModel):
     assessmentSignals: Optional[AssessmentSignals] = None
     profileCompleteness: int = 0
     careerReadiness: int = 0
+
     academicLevel: str = ""
+    # Phase 2.5: Additive Career Classification Prediction
+    predictedCareerCategory: Optional[str] = None
+    predictedCareerConfidence: Optional[float] = None
+    topCareerPredictions: List[Dict[str, Any]] = []
+
 
 class MinimalOnboardingRequest(BaseModel):
     name: Optional[str] = None

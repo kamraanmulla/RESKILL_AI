@@ -1,0 +1,29 @@
+{
+  "model_name": "ReSkillAI Resume Career Category Classifier",
+  "winning_model_type": "Model B (TF-IDF + LinearSVC)",
+  "model_file": "resume_career_classifier.joblib",
+  "total_records": 2482,
+  "train_samples": 1737,
+  "validation_samples": 372,
+  "test_samples": 373,
+  "random_state": 42,
+  "test_metrics": {
+    "accuracy": 0.6890080428954424,
+    "macro_precision": 0.6818378629916143,
+    "macro_recall": 0.6436887254901961,
+    "macro_f1": 0.6375404556298526,
+    "weighted_precision": 0.6941339819193622,
+    "weighted_recall": 0.6890080428954424,
+    "weighted_f1": 0.6733496803017601
+  },
+  "cross_validation_metrics": {
+    "mean_accuracy": 0.663796415913081,
+    "std_accuracy": 0.018620726790285345,
+    "mean_macro_f1": 0.6071599716452749,
+    "std_macro_f1": 0.017667967801601063,
+    "mean_weighted_f1": 0.651351075280332,
+    "std_weighted_f1": 0.019640846994299573
+  },
+  "quality_gate": "WEAK",
+  "model_status": "MODEL STATUS: WEAK \u2014 NEEDS IMPROVEMENT"
+}

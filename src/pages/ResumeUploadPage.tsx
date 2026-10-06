@@ -124,7 +124,7 @@ export const ResumeUploadPage: React.FC<ResumeUploadPageProps> = ({
         <input
           ref={fileInputRef}
           type="file"
-          accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          accept=".pdf,.docx,.doc,.txt,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           className="hidden"
           onChange={handleFileInput}
         />
@@ -156,7 +156,7 @@ export const ResumeUploadPage: React.FC<ResumeUploadPageProps> = ({
               Drag and drop your resume here
             </h3>
             <p className="text-xs text-charcoal-500 mb-5 font-mono">
-              Supported formats: PDF, DOCX (Max size: 10MB)
+              Supported formats: PDF, DOCX, TXT (Max size: 10MB)
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">

@@ -1,6 +1,7 @@
 import json
 import logging
 import hashlib
+import re
 from typing import Dict, Any, Optional, List, Tuple
 from ..config import settings
 from ..schemas.profile import StudentProfile, Skill, StudentExperience, StudentProject, AssessmentSignals
@@ -237,28 +238,60 @@ Return ONLY valid JSON:
     def _extract_skills_from_text_locally(self, text: str) -> Tuple[List[Skill], Optional[str]]:
         """Extracts skills derived strictly from words appearing in the candidate's own text."""
         keywords = {
-            "react": ("React", "Frontend", 70),
-            "python": ("Python", "Backend", 70),
-            "javascript": ("JavaScript", "Frontend", 70),
-            "node": ("Node.js", "Backend", 65),
+            "python": ("Python", "Backend", 75),
+            "fastapi": ("FastAPI", "Backend", 75),
+            "django": ("Django", "Backend", 70),
+            "flask": ("Flask", "Backend", 70),
+            "java": ("Java", "Backend", 75),
+            "spring boot": ("Spring Boot", "Backend", 75),
+            "spring": ("Spring Boot", "Backend", 70),
+            "c++": ("C++", "Backend", 75),
+            "c#": ("C#", "Backend", 70),
+            ".net": ("ASP.NET", "Backend", 70),
+            "javascript": ("JavaScript", "Frontend", 75),
+            "typescript": ("TypeScript", "Frontend", 70),
+            "react": ("React", "Frontend", 75),
+            "node": ("Node.js", "Backend", 70),
             "express": ("Express", "Backend", 65),
-            "html": ("HTML/CSS", "Frontend", 75),
-            "css": ("HTML/CSS", "Frontend", 75),
-            "sql": ("SQL", "Database", 65),
+            "html": ("HTML/CSS", "Frontend", 80),
+            "css": ("HTML/CSS", "Frontend", 80),
+            "tailwind": ("Tailwind CSS", "Frontend", 70),
+            "sql": ("SQL", "Database", 70),
+            "mysql": ("MySQL", "Database", 70),
+            "postgres": ("PostgreSQL", "Database", 70),
+            "postgresql": ("PostgreSQL", "Database", 70),
             "mongo": ("MongoDB", "Database", 65),
-            "linux": ("Linux", "Tools", 65),
-            "git": ("Git", "Tools", 70),
-            "docker": ("Docker", "Tools", 55),
-            "cyber": ("Cybersecurity", "Security", 65),
-            "machine learning": ("Machine Learning", "AI/ML", 65),
-            "ai": ("AI / ML", "AI/ML", 65),
-            "wireshark": ("Wireshark", "Security", 60),
-            "aws": ("Cloud / AWS", "Cloud", 60)
+            "mongodb": ("MongoDB", "Database", 65),
+            "redis": ("Redis", "Database", 65),
+            "linux": ("Linux", "Tools", 70),
+            "git": ("Git", "Tools", 75),
+            "docker": ("Docker", "Tools", 65),
+            "kubernetes": ("Kubernetes", "Tools", 60),
+            "aws": ("Cloud / AWS", "Cloud", 65),
+            "azure": ("Azure", "Cloud", 65),
+            "gcp": ("Google Cloud", "Cloud", 65),
+            "cyber": ("Cybersecurity", "Security", 70),
+            "cybersecurity": ("Cybersecurity", "Security", 70),
+            "networking": ("Networking", "Security", 65),
+            "wireshark": ("Wireshark", "Security", 65),
+            "siem": ("SIEM", "Security", 65),
+            "machine learning": ("Machine Learning", "AI/ML", 70),
+            "ai": ("AI / ML", "AI/ML", 70),
+            "pytorch": ("PyTorch", "AI/ML", 65),
+            "tensorflow": ("TensorFlow", "AI/ML", 65),
+            "pandas": ("Pandas", "AI/ML", 70),
+            "rest": ("REST APIs", "Backend", 70),
+            "graphql": ("GraphQL", "Backend", 65)
         }
         lower = text.lower()
         found_skills: List[Skill] = []
+        seen = set()
+
         for kw, (name, cat, prof) in keywords.items():
-            if kw in lower:
+            # Check pattern with word boundary to prevent partial substring false positives
+            pattern = r'\b' + re.escape(kw) + r'\b'
+            if re.search(pattern, lower) and name not in seen:
+                seen.add(name)
                 found_skills.append(
                     Skill(
                         name=name,
@@ -274,46 +307,179 @@ Return ONLY valid JSON:
 
     def _extract_from_text_strictly(self, text: str) -> Dict[str, Any]:
         """Extracts strictly from user's resume text without any hardcoded demo profile or demo student data."""
+        if not text:
+            return {
+                "name": None,
+                "email": None,
+                "degree": None,
+                "institution": None,
+                "graduationYear": 2026,
+                "skills": [],
+                "projects": [],
+                "experience": []
+            }
+
         lower = text.lower()
         skills: List[Dict[str, Any]] = []
+        seen_skills = set()
 
+        # Comprehensive technical taxonomy
         catalog = [
-            ("JavaScript", "Frontend", 80),
-            ("React", "Frontend", 75),
-            ("HTML/CSS", "Frontend", 85),
-            ("TypeScript", "Frontend", 65),
-            ("Node.js", "Backend", 65),
-            ("Express", "Backend", 60),
-            ("REST APIs", "Backend", 65),
-            ("MongoDB", "Database", 65),
-            ("SQL", "Database", 60),
-            ("Git", "Tools", 75),
-            ("Docker", "Tools", 50),
-            ("Linux", "Tools", 65),
-            ("Python", "Backend", 75),
-            ("Cybersecurity", "Security", 65),
-            ("Networking", "Security", 65)
+            ("Python", "Backend", 80, r'\bpython\b'),
+            ("FastAPI", "Backend", 75, r'\bfastapi\b'),
+            ("Django", "Backend", 75, r'\bdjango\b'),
+            ("Flask", "Backend", 70, r'\bflask\b'),
+            ("Java", "Backend", 80, r'\bjava\b(?!\s*script)'),
+            ("Spring Boot", "Backend", 75, r'\bspring\s*boot\b|\bspring\s*framework\b'),
+            ("C++", "Backend", 75, r'\bc\+\+\b'),
+            ("C#", "Backend", 70, r'\bc#\b|\bc\s*sharp\b'),
+            ("Go", "Backend", 70, r'\bgolang\b|\bgo\s+language\b'),
+            ("Rust", "Backend", 70, r'\brust\b'),
+            ("JavaScript", "Frontend", 80, r'\bjavascript\b|\bjs\b'),
+            ("TypeScript", "Frontend", 75, r'\btypescript\b|\bts\b'),
+            ("React", "Frontend", 80, r'\breact(?:\.js)?\b'),
+            ("Next.js", "Frontend", 70, r'\bnext(?:\.js)?\b'),
+            ("Node.js", "Backend", 75, r'\bnode(?:\.js)?\b'),
+            ("Express", "Backend", 70, r'\bexpress(?:\.js)?\b'),
+            ("REST APIs", "Backend", 75, r'\brest\s*api[s]?\b|\brestful\b'),
+            ("GraphQL", "Backend", 65, r'\bgraphql\b'),
+            ("HTML/CSS", "Frontend", 85, r'\bhtml\b|\bcss\b'),
+            ("Tailwind CSS", "Frontend", 75, r'\btailwind\b'),
+            ("SQL", "Database", 75, r'\bsql\b'),
+            ("MySQL", "Database", 75, r'\bmysql\b'),
+            ("PostgreSQL", "Database", 75, r'\bpostgres(?:ql)?\b'),
+            ("MongoDB", "Database", 70, r'\bmongo(?:db)?\b'),
+            ("Redis", "Database", 65, r'\bredis\b'),
+            ("Git", "Tools", 80, r'\bgit\b|\bgithub\b|\bgitlab\b'),
+            ("Docker", "Tools", 70, r'\bdocker\b'),
+            ("Kubernetes", "Tools", 65, r'\bkubernetes\b|\bk8s\b'),
+            ("Linux", "Tools", 75, r'\blinux\b|\bunix\b|\bubuntu\b'),
+            ("AWS", "Cloud", 70, r'\baws\b|\bamazon\s*web\s*services\b'),
+            ("Azure", "Cloud", 65, r'\bazure\b'),
+            ("Google Cloud", "Cloud", 65, r'\bgcp\b|\bgoogle\s*cloud\b'),
+            ("Cybersecurity", "Security", 75, r'\bcybersecurity\b|\binformation\s*security\b'),
+            ("Networking", "Security", 70, r'\bnetworking\b|\btcp/ip\b|\bdns\b'),
+            ("SIEM", "Security", 70, r'\bsiem\b|\bsplunk\b'),
+            ("Wireshark", "Security", 65, r'\bwireshark\b'),
+            ("Incident Response", "Security", 65, r'\bincident\s*response\b'),
+            ("Machine Learning", "AI/ML", 75, r'\bmachine\s*learning\b|\bml\b'),
+            ("Deep Learning", "AI/ML", 70, r'\bdeep\s*learning\b'),
+            ("PyTorch", "AI/ML", 70, r'\bpytorch\b'),
+            ("TensorFlow", "AI/ML", 70, r'\btensorflow\b'),
+            ("Pandas", "AI/ML", 75, r'\bpandas\b'),
+            ("NumPy", "AI/ML", 75, r'\bnumpy\b'),
+            ("Data Analysis", "AI/ML", 75, r'\bdata\s*analysis\b|\bdata\s*analytics\b')
         ]
 
-        for name, cat, prof in catalog:
-            if name.lower() in lower:
+        for name, cat, prof, pat in catalog:
+            if re.search(pat, lower) and name not in seen_skills:
+                seen_skills.add(name)
                 skills.append({"name": name, "category": cat, "proficiency": prof})
 
-        # Name extraction attempt strictly from top line
+        # Name extraction strictly from first non-empty header line
         lines = [line.strip() for line in text.split("\n") if line.strip()]
-        detected_name = lines[0] if lines and len(lines[0].split()) <= 4 and "@" not in lines[0] else None
+        detected_name = None
+        for line in lines[:5]:
+            clean_l = re.sub(r'[^a-zA-Z\s]', '', line).strip()
+            words = clean_l.split()
+            if 2 <= len(words) <= 4 and "@" not in line and "http" not in line.lower() and "resume" not in line.lower():
+                detected_name = clean_l
+                break
 
-        # Return strictly derived attributes with NO mock/demo student fallback
+        # Email extraction
+        email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', text)
+        detected_email = email_match.group(0) if email_match else None
+
+        # Degree extraction
+        deg_match = re.search(
+            r'(B\.?Tech|B\.?E\.?|Bachelor(?:\'s)?(?:\s+of\s+[A-Za-z\s]+)?|M\.?Tech|Master(?:\'s)?(?:\s+of\s+[A-Za-z\s]+)?|BCA|MCA|B\.?Sc|M\.?Sc)(?:(?:\s+in|\s+of|\s*-)?\s*([A-Za-z\s&]{3,40}))?',
+            text,
+            re.IGNORECASE
+        )
+        detected_degree = None
+        if deg_match:
+            base_deg = deg_match.group(1).strip()
+            field_spec = deg_match.group(2).strip() if deg_match.group(2) else ""
+            detected_degree = f"{base_deg} in {field_spec}".strip() if field_spec else base_deg
+
+        # Institution extraction
+        inst_match = re.search(
+            r'([A-Za-z0-9\s&,.\'-]+(?:Institute of Technology|University|National Institute|Engineering College|Campus|Academy|College))',
+            text,
+            re.IGNORECASE
+        )
+        detected_institution = inst_match.group(1).strip() if inst_match else None
+
+        # Graduation year extraction
+        grad_match = re.search(r'\b(20[2-3][0-9])\b', text)
+        detected_grad_year = int(grad_match.group(1)) if grad_match else 2026
+
+        # Projects extraction
+        projects: List[Dict[str, Any]] = []
+        proj_section = re.search(r'(?:projects?|academic projects?|personal projects?)[\s:]*\n([\s\S]*?)(?:\n\s*(?:experience|education|skills|certifications|awards)|\Z)', text, re.IGNORECASE)
+        if proj_section:
+            p_text = proj_section.group(1).strip()
+            p_blocks = [b.strip() for b in re.split(r'\n(?=[A-Z0-9•\-\*])', p_text) if b.strip()]
+            for blk in p_blocks[:3]:
+                blk_lines = [l.strip().lstrip('•-*0123456789. ') for l in blk.split('\n') if l.strip()]
+                if blk_lines:
+                    title = blk_lines[0]
+                    desc = " ".join(blk_lines[1:]) if len(blk_lines) > 1 else title
+                    # Detect tech mentioned in this project
+                    p_tech = [s["name"] for s in skills if s["name"].lower() in blk.lower()]
+                    projects.append({
+                        "title": title[:60],
+                        "tech": p_tech[:4],
+                        "description": desc[:200]
+                    })
+        elif "project" in lower:
+            # Fallback inline project detection
+            proj_lines = [l.strip() for l in lines if "project" in l.lower() or "built" in l.lower() or "developed" in l.lower()]
+            for pl in proj_lines[:2]:
+                projects.append({
+                    "title": pl.lstrip('•-*0123456789. ')[:60],
+                    "tech": [s["name"] for s in skills if s["name"].lower() in pl.lower()][:3],
+                    "description": pl[:180]
+                })
+
+        # Experience extraction
+        experience: List[Dict[str, Any]] = []
+        exp_section = re.search(r'(?:experience|work experience|employment|internships?)[\s:]*\n([\s\S]*?)(?:\n\s*(?:projects?|education|skills|certifications|awards)|\Z)', text, re.IGNORECASE)
+        if exp_section:
+            e_text = exp_section.group(1).strip()
+            e_blocks = [b.strip() for b in re.split(r'\n(?=[A-Z0-9•\-\*])', e_text) if b.strip()]
+            for blk in e_blocks[:2]:
+                blk_lines = [l.strip().lstrip('•-*0123456789. ') for l in blk.split('\n') if l.strip()]
+                if blk_lines:
+                    title = blk_lines[0]
+                    desc = " ".join(blk_lines[1:]) if len(blk_lines) > 1 else title
+                    experience.append({
+                        "title": title[:50],
+                        "company": "Organization",
+                        "period": "Previous",
+                        "description": desc[:200]
+                    })
+        elif "intern" in lower or "engineer" in lower:
+            exp_lines = [l.strip() for l in lines if "intern" in l.lower() or "engineer" in l.lower() or "developer" in l.lower()]
+            for el in exp_lines[:2]:
+                experience.append({
+                    "title": el.lstrip('•-*0123456789. ')[:50],
+                    "company": "Organization",
+                    "period": "Previous",
+                    "description": el[:180]
+                })
+
         return {
             "name": detected_name,
-            "email": None,
-            "degree": None,
-            "institution": None,
-            "graduationYear": 2026,
+            "email": detected_email,
+            "degree": detected_degree,
+            "institution": detected_institution,
+            "graduationYear": detected_grad_year,
             "skills": skills,
-            "projects": [],
-            "experience": []
+            "projects": projects,
+            "experience": experience
         }
+
 
     def career_coach_chat(
         self,

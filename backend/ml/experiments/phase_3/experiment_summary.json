@@ -1,0 +1,143 @@
+{
+  "model_name": "ReSkillAI Skill Evidence Strength Model (Phase 3)",
+  "model_type": "HistGradientBoosting",
+  "model_file": "skill_evidence_model.joblib",
+  "training_strategy": "Weak Supervision with Calibrated Probabilistic Inference",
+  "target_type": "Binary Evidence Support (1 = Substantive Applied Evidence, 0 = Casual / Absent)",
+  "dataset": "Kaggle Resume Dataset (2,482 deduplicated resumes) -> candidate_skill_features.csv",
+  "total_candidate_skill_pairs": 10868,
+  "total_unique_candidates": 2482,
+  "train_pairs": 7588,
+  "val_pairs": 1640,
+  "test_pairs": 1640,
+  "feature_names": [
+    "resume_mentioned",
+    "resume_frequency",
+    "in_skills_section",
+    "in_experience_section",
+    "in_project_section",
+    "in_education_section",
+    "in_summary_section",
+    "has_action_verb_context",
+    "co_occurring_tech_count",
+    "section_text_length",
+    "is_software_skill",
+    "is_essential_skill",
+    "onet_importance_proxy",
+    "project_evidence_count",
+    "assessment_evidence_score",
+    "practical_evidence_score"
+  ],
+  "test_metrics": {
+    "model_name": "HistGradientBoosting",
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "macro_f1": 1.0,
+    "weighted_f1": 1.0,
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "brier_score": 1.089690002659034e-06,
+    "cv_macro_f1": 1.0,
+    "cv_macro_f1_std": 0.0,
+    "cv_roc_auc": 1.0
+  },
+  "baseline_metrics": {
+    "name": "Heuristic Rule Baseline",
+    "accuracy": 0.9323170731707318,
+    "precision": 0.8447653429602888,
+    "recall": 0.7748344370860927,
+    "macro_f1": 0.8835971325147278,
+    "weighted_f1": 0.931169100959233,
+    "roc_auc": 0.9753202367871391,
+    "pr_auc": 0.8680945515393674,
+    "brier_score": 0.053800304878048794
+  },
+  "improvement_over_baseline": {
+    "delta_macro_f1": 0.1164,
+    "delta_roc_auc": 0.0247,
+    "delta_accuracy": 0.0677
+  },
+  "quality_gate": "YELLOW",
+  "status_string": "MODEL STATUS: YELLOW \u2014 MODERATE SIGNAL",
+  "can_model_be_trusted": "PARTIAL \u2014 Useful auxiliary signal under weak supervision",
+  "can_integrate_into_reskillai": "NOT YET",
+  "all_candidates_benchmarked": [
+    {
+      "name": "Logistic Regression (Calibrated)",
+      "cv_macro_f1_mean": 0.951713411221121,
+      "cv_macro_f1_std": 0.008785821143796144,
+      "cv_roc_auc_mean": 0.9979707687071055,
+      "cv_roc_auc_std": 0.0005267113466823142,
+      "val_macro_f1": 0.9504384631657165,
+      "val_roc_auc": 0.997493202332939,
+      "val_accuracy": 0.9689024390243902
+    },
+    {
+      "name": "Random Forest",
+      "cv_macro_f1_mean": 0.9916450673890607,
+      "cv_macro_f1_std": 0.004598361135260551,
+      "cv_roc_auc_mean": 1.0,
+      "cv_roc_auc_std": 4.965068306494546e-17,
+      "val_macro_f1": 0.9897745155988518,
+      "val_roc_auc": 1.0,
+      "val_accuracy": 0.9939024390243902
+    },
+    {
+      "name": "HistGradientBoosting",
+      "cv_macro_f1_mean": 1.0,
+      "cv_macro_f1_std": 0.0,
+      "cv_roc_auc_mean": 1.0,
+      "cv_roc_auc_std": 0.0,
+      "val_macro_f1": 1.0,
+      "val_roc_auc": 1.0,
+      "val_accuracy": 1.0
+    }
+  ],
+  "classification_report": {
+    "0": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1338.0
+    },
+    "1": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 302.0
+    },
+    "accuracy": 1.0,
+    "macro avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1640.0
+    },
+    "weighted avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1640.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      1338,
+      0
+    ],
+    [
+      0,
+      302
+    ]
+  ],
+  "environment": {
+    "sklearn_version": "1.9.0",
+    "joblib_version": "1.5.3",
+    "pandas_version": "3.0.3",
+    "numpy_version": "2.4.6",
+    "python_version": "3.14.0",
+    "timestamp": "2026-10-06T22:57:10.537272Z"
+  },
+  "disclaimer": "Estimates evidence support and confidence from multi-source portfolio signals. Does NOT represent an unverified 0-100 personal skill proficiency test."
+}

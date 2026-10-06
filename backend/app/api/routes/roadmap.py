@@ -11,20 +11,22 @@ class UpdateStepStatusRequest(BaseModel):
     status: Literal["completed", "in_progress", "upcoming"]
 
 _dynamic_roadmap_cache: List[RoadmapStep] = []
-_last_career_id: str = ""
+_last_cache_key: str = ""
 
 @router.get("", response_model=List[RoadmapStep])
 def get_roadmap():
-    global _dynamic_roadmap_cache, _last_career_id
+    global _dynamic_roadmap_cache, _last_cache_key
     profile = get_profile()
     cid = profile.targetCareerId or "career_fullstack"
+    cache_key = f"{profile.id}:{cid}:{len(profile.skills)}:{profile.profileState}"
 
-    # Regenerate if target career changed or cache is empty
-    if not _dynamic_roadmap_cache or _last_career_id != cid:
+    # Regenerate if candidate, skills, state, or career changed, or cache is empty
+    if not _dynamic_roadmap_cache or _last_cache_key != cache_key:
         _dynamic_roadmap_cache = RoadmapEngine.generate_roadmap(profile, cid)
-        _last_career_id = cid
+        _last_cache_key = cache_key
 
     return _dynamic_roadmap_cache
+
 
 @router.post("/step/{step_id}", response_model=List[RoadmapStep])
 def update_step_status(step_id: str, req: UpdateStepStatusRequest):

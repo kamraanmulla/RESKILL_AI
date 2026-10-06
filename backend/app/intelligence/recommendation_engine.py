@@ -12,6 +12,12 @@ class CareerRecommendationEngine:
 
     @classmethod
     def recommend_careers(cls, profile: StudentProfile) -> List[CareerRecommendation]:
+        # Lazy import to avoid circular dependency
+        try:
+            from ..services.skill_evidence_service import skill_evidence_service
+        except Exception:
+            skill_evidence_service = None
+
         recommendations: List[CareerRecommendation] = []
         user_skills = profile.skills
         has_skills = len(user_skills) > 0
@@ -63,7 +69,51 @@ class CareerRecommendationEngine:
                 if ci in ct or ct in ci or ci in cc:
                     interest_alignment = min(100, interest_alignment + 30)
 
-            # Combined weighted score
+            # Phase 5: Evaluate real user evidence across matched skills
+            avg_strength = None
+            avg_conf = 0.0
+            active_sources = []
+            ev_level = "INSUFFICIENT"
+            ev_explanation = "No empirical evidence available. Upload resume or complete assessment to calibrate evidence."
+
+            if has_skills and matched_skills and skill_evidence_service:
+                career_ev_strengths = []
+                career_ev_confidences = []
+                career_ev_sources = set()
+                supported_matched_count = 0
+
+                for m_skill in matched_skills:
+                    try:
+                        ev = skill_evidence_service.evaluate_skill_evidence(profile, m_skill)
+                        if ev.evidence_strength is not None:
+                            career_ev_strengths.append(ev.evidence_strength)
+                        if ev.confidence > 0:
+                            career_ev_confidences.append(ev.confidence)
+                        for src in ev.evidence_sources:
+                            career_ev_sources.add(src)
+                        if ev.status in ["SUPPORTED", "MODERATE_EVIDENCE"]:
+                            supported_matched_count += 1
+                    except Exception:
+                        pass
+
+                if career_ev_strengths:
+                    avg_strength = round(sum(career_ev_strengths) / len(career_ev_strengths), 2)
+                    avg_conf = round(sum(career_ev_confidences) / len(career_ev_confidences), 2) if career_ev_confidences else 0.0
+                    active_sources = sorted(list(career_ev_sources))
+                    if avg_strength >= 0.70 and len(active_sources) >= 2:
+                        ev_level = "STRONG"
+                    elif avg_strength >= 0.40 or len(active_sources) >= 1:
+                        ev_level = "MODERATE"
+                    else:
+                        ev_level = "WEAK"
+                    ev_explanation = (
+                        f"Match credibility is {ev_level.lower()}: corroborated by {len(active_sources)} empirical source(s) "
+                        f"({', '.join(active_sources)}) across {supported_matched_count} verified skill(s)."
+                    )
+                else:
+                    ev_explanation = "Matched skills lack corroborating empirical artifacts in uploaded portfolio."
+
+            # Combined weighted score (strictly preserved deterministic baseline)
             if not has_skills and not signals and not profile.careerInterest:
                 final_score = 0
                 confidence = "Uncalibrated"
@@ -99,7 +149,12 @@ class CareerRecommendationEngine:
                     matchedSkills=matched_skills,
                     missingSkills=missing_skills,
                     interestAlignment=interest_alignment,
-                    explanation=explanation
+                    explanation=explanation,
+                    evidence_strength=avg_strength,
+                    evidence_confidence=avg_conf,
+                    evidence_sources=active_sources,
+                    evidence_explanation=ev_explanation,
+                    evidence_level=ev_level
                 )
             )
 

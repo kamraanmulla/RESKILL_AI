@@ -21,8 +21,25 @@ class SkillGapEngine:
             return "AI/ML"
         return "Other"
 
+    @staticmethod
+    def _map_evidence_level(status: str) -> str:
+        if status == "SUPPORTED":
+            return "STRONG"
+        elif status == "MODERATE_EVIDENCE":
+            return "MODERATE"
+        elif status == "WEAK_EVIDENCE":
+            return "WEAK"
+        else:
+            return "INSUFFICIENT"
+
     @classmethod
     def calculate_skill_gaps(cls, profile: StudentProfile, target_career_id: Optional[str] = None) -> List[SkillGapItem]:
+        # Lazy import to eliminate circular dependency with adaptive assessment engine
+        try:
+            from ..services.skill_evidence_service import skill_evidence_service
+        except Exception:
+            skill_evidence_service = None
+
         cid = target_career_id or profile.targetCareerId or "career_fullstack"
         target_career = get_career_by_id(cid)
         user_skills = profile.skills
@@ -55,6 +72,26 @@ class SkillGapEngine:
                 status = "Not Started"
                 recommendation = f"Essential entry-level requirement for {target_career.title}. Prioritize via structured roadmap modules."
 
+            # Phase 5A: Evaluate real user evidence via Phase 4 evidence service
+            ev_strength = None
+            ev_conf = 0.0
+            ev_status = "NOT_AVAILABLE"
+            ev_sources = []
+            ev_explanation = None
+            ev_level = "INSUFFICIENT"
+
+            if skill_evidence_service:
+                try:
+                    ev_item = skill_evidence_service.evaluate_skill_evidence(profile, skill_name)
+                    ev_strength = ev_item.evidence_strength
+                    ev_conf = ev_item.confidence
+                    ev_status = ev_item.status
+                    ev_sources = ev_item.evidence_sources
+                    ev_explanation = ev_item.explanation
+                    ev_level = cls._map_evidence_level(ev_item.status)
+                except Exception:
+                    ev_status = "INSUFFICIENT_EVIDENCE"
+
             items.append(
                 SkillGapItem(
                     skill=skill_name,
@@ -64,7 +101,13 @@ class SkillGapEngine:
                     gap=gap,
                     priority=priority,
                     status=status,
-                    recommendation=recommendation
+                    recommendation=recommendation,
+                    evidence_strength=ev_strength,
+                    evidence_confidence=ev_conf,
+                    evidence_status=ev_status,
+                    evidence_sources=ev_sources,
+                    evidence_explanation=ev_explanation,
+                    evidence_level=ev_level
                 )
             )
 

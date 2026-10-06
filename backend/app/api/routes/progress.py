@@ -1,5 +1,6 @@
 from fastapi import APIRouter
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+from ...schemas.intelligence import ReadinessResult
 from ...intelligence.readiness_engine import ReadinessEngine
 from ...intelligence.progression_engine import CareerProgressionEngine
 from ...intelligence.skill_gap_engine import SkillGapEngine
@@ -7,6 +8,11 @@ from .profile_store import get_profile
 from .roadmap import get_roadmap
 
 router = APIRouter(tags=["Progress & Readiness"])
+
+@router.get("/readiness", response_model=ReadinessResult)
+def get_readiness_data(target_career_id: Optional[str] = None):
+    profile = get_profile()
+    return ReadinessEngine.calculate_readiness(profile, target_career_id)
 
 @router.get("/progress")
 def get_progress_data():
@@ -24,6 +30,11 @@ def get_progress_data():
         "readinessPoints": readiness.readinessPoints,
         "readinessLevel": readiness.readinessLevel,
         "readinessBreakdown": readiness.breakdown,
+        "evidence_summary": readiness.evidence_summary,
+        "evidence_confidence": readiness.evidence_confidence,
+        "evidence_sources": readiness.evidence_sources,
+        "evidence_strength": readiness.evidence_strength,
+        "evidence_level": readiness.evidence_level,
         "skillsCompleted": {
             "completed": verified_skills_count,
             "total": max(len(profile.skills), 8)
